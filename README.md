@@ -6,7 +6,7 @@ Lab control
 
 ### Recordatorio comandos git y GitHub
 
-Ver [este link](https://guides.github.com/introduction/git-handbook/). 
+Ver [este link](https://guides.github.com/introduction/git-handbook/).
 
 ### Estructura commits
 
