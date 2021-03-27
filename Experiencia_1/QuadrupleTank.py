@@ -8,6 +8,23 @@ import sys
 from cliente import Cliente # cliente OPCUA
 import random
 import threading
+import pandas as pd
+import gc
+import dash
+from dash.dependencies import Output, Input
+import dash_core_components as dcc
+import dash_html_components as html
+import plotly
+import plotly.graph_objs as go
+
+MUESTRAS_RAM = 10000
+KI = 0
+KP = 1
+KD = 1
+REF1 = 1
+REF2 = 1
+DATA = pd.DataFrame(columns=['valvula 1', 'valvula 2', 'bomba 1', 'bomba 2' , 'H1', 'H2', 'H3', 'H4', 'KP', 'KD', 'KI', 'REF1', 'REF2'])
+
 
 class QuadrupleTank():
     def __init__(self, x0, Hmax, voltmax):
@@ -31,6 +48,22 @@ class QuadrupleTank():
         self.Ts = 0
         self.Hmax = Hmax
         self.Hmin = 0.0
+        self.registry = [] # pd.DataFrame(columns=['TIEMPO', 'H1', 'H2', 'H3', 'H4', 'T1', 'T2', 'T3', 'T4', 'VOLTAJE 1', 'VOLTAJE 2', 'GAMMA 1', 'GAMMA 2'])
+
+    def register_data(self):
+        global MUESTRAS_RAM, KP, KD, KI, REF1, REF2, DATA
+        if len(self.registry) > MUESTRAS_RAM:
+            self.registry.pop(0)
+        data = {'valvula 1': self.volt[0], 'valvula 2': self.volt[1], 'bomba 1': self.gamma[0], 'bomba 2': self.gamma[1], 'H1': self.x[0], 'H2': self.x[1], 'H3': self.x[2],  'H4': self.x[3], 'KP': KP, 'KD': KD, 'KI': KI, 'REF1': REF1, 'REF2': REF2}
+        self.registry.append(data)
+        DATA = pd.DataFrame.from_dict(self.registry)
+        gc.collect()
+
+    def save_to_disk(self):
+        global MUESTRAS_RAM
+        df_final = pd.DataFrame.from_dict(self.registry)
+        df_final.to_csv('final_data_{}_datapoints.csv'.format(str(MUESTRAS_RAM)))
+        del df_final
 
     # Restricciones físicas de los tanques
     def Limites(self):
@@ -70,6 +103,7 @@ class QuadrupleTank():
         self.Limites()
         #print(self.x)
         self.ti = time.time()
+        self.register_data()
         return self.x
 
 
@@ -298,6 +332,8 @@ class Interfaz_grafica():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
+                elif event.key == pygame.K_0:
+                    sistema.save_to_disk()
 
             # Control manual de las variables manipuladas
             if event.type == pygame.KEYDOWN:
@@ -435,9 +471,144 @@ sistema.time_scaling = 1 # Para el tiempo
 interfaz = Interfaz_grafica(Hmax=Hmax)
 interfaz.paint()
 running = True
-manual = False # Control Manual o automático de las variables
+manual = True # Control Manual o automático de las variables
 t = 0
 alturasMatrix = []
+
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.layout = html.Div(
+    html.Div([
+        html.H4('Métricas del controlador y del sistema'),
+        dcc.Graph(id='live-update-graph'),
+        dcc.Interval(
+            id='interval-component',
+            interval=1*1000, # in milliseconds
+            n_intervals=0
+        )
+    ])
+)
+
+# Multiple components can update everytime interval gets fired.
+@app.callback(Output('live-update-graph', 'figure'),
+              Input('interval-component', 'n_intervals'))
+def update_graph_live(n):
+
+    # Create the graph with subplots
+    fig = plotly.subplots.make_subplots(rows=2, cols=7, vertical_spacing=0.2)
+    fig['layout']['margin'] = {
+        'l': 30, 'r': 10, 'b': 30, 't': 10
+    }
+    #fig['layout']['legend'] = {'x': 10, 'y': 1, 'xanchor': 'left'}
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['valvula 1'],
+        'name': 'Válvula 1',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 1, 1)
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['valvula 2'],
+        'name': 'Válvula 2',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 2, 1)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['bomba 1'],
+        'name': 'Bomba 1',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 1, 2)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['bomba 2'],
+        'name': 'Bomba 2',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 2, 2)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['H1'],
+        'name': 'Altura tanque 1',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 1, 3)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['H2'],
+        'name': 'Altura tanque 2',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 2, 3)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['H3'],
+        'name': 'Altura tanque 3',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 1, 4)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['H4'],
+        'name': 'Altura tanque 4',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 2, 4)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['KP'],
+        'name': 'Constante proporcional',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 1, 5)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['KD'],
+        'name': 'Constante derivativa',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 2, 5)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['KI'],
+        'name': 'Constante integral',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 1, 6)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['REF1'],
+        'name': 'Referencia 1',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 2, 6)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['REF2'],
+        'name': 'Referencia 2',
+        'mode': 'lines+markers',
+        'type': 'scatter'
+    }, 1, 7)
+
+    return fig
+
+x = threading.Thread(target=app.run_server, args=())
+x.start()
 
 gammas = 0
 gammas_ant = 0
@@ -488,6 +659,15 @@ while running:
         sistema.volt[1] = volt2
         sistema.gamma[0] = gamma1
         sistema.gamma[1] = gamma2
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                elif event.key == pygame.K_0:
+                    sistema.save_to_disk()
 
 
 
