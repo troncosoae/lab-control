@@ -320,6 +320,7 @@ class Interfaz_grafica():
 
 
     def eventos(self, running, sensibilidad, pump1_act, pump2_act, switch1_act, switch2_act):
+        global sistema
         # Diferenciales de cambio
         dpump1 = 0
         dpump2 = 0
@@ -471,7 +472,7 @@ sistema.time_scaling = 1 # Para el tiempo
 interfaz = Interfaz_grafica(Hmax=Hmax)
 interfaz.paint()
 running = True
-manual = True # Control Manual o automático de las variables
+manual = False # Control Manual o automático de las variables
 t = 0
 alturasMatrix = []
 
@@ -714,4 +715,5 @@ while running:
     clock.tick(fps)
 
 pygame.quit()
+x.join()
 
