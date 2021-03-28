@@ -18,12 +18,16 @@ import plotly
 import plotly.graph_objs as go
 
 MUESTRAS_RAM = 10000
-KI = 0
-KP = 1
-KD = 1
-REF1 = 1
-REF2 = 1
-DATA = pd.DataFrame(columns=['valvula 1', 'valvula 2', 'bomba 1', 'bomba 2' , 'H1', 'H2', 'H3', 'H4', 'KP', 'KD', 'KI', 'REF1', 'REF2'])
+KI1 = 0
+KP1 = 1
+KD1 = 1
+KI2 = 0
+KP2 = 1
+KD2 = 1
+REF1 = 30
+REF2 = 30
+DATA = pd.DataFrame(columns=['valvula 1', 'valvula 2', 'bomba 1', 'bomba 2' , 'H1', 'H2', 'H3', 'H4', 'KP1', 'KD1', 'KI1', 'KP2', 'KD2', 'KI2', 'REF1', 'REF2'])
+registry = []
 
 
 class QuadrupleTank():
@@ -48,22 +52,6 @@ class QuadrupleTank():
         self.Ts = 0
         self.Hmax = Hmax
         self.Hmin = 0.0
-        self.registry = [] # pd.DataFrame(columns=['TIEMPO', 'H1', 'H2', 'H3', 'H4', 'T1', 'T2', 'T3', 'T4', 'VOLTAJE 1', 'VOLTAJE 2', 'GAMMA 1', 'GAMMA 2'])
-
-    def register_data(self):
-        global MUESTRAS_RAM, KP, KD, KI, REF1, REF2, DATA
-        if len(self.registry) > MUESTRAS_RAM:
-            self.registry.pop(0)
-        data = {'valvula 1': self.volt[0], 'valvula 2': self.volt[1], 'bomba 1': self.gamma[0], 'bomba 2': self.gamma[1], 'H1': self.x[0], 'H2': self.x[1], 'H3': self.x[2],  'H4': self.x[3], 'KP': KP, 'KD': KD, 'KI': KI, 'REF1': REF1, 'REF2': REF2}
-        self.registry.append(data)
-        DATA = pd.DataFrame.from_dict(self.registry)
-        gc.collect()
-
-    def save_to_disk(self):
-        global MUESTRAS_RAM
-        df_final = pd.DataFrame.from_dict(self.registry)
-        df_final.to_csv('final_data_{}_datapoints.csv'.format(str(MUESTRAS_RAM)))
-        del df_final
 
     # Restricciones físicas de los tanques
     def Limites(self):
@@ -103,28 +91,8 @@ class QuadrupleTank():
         self.Limites()
         #print(self.x)
         self.ti = time.time()
-        self.register_data()
         return self.x
 
-
-
-# series = []
-# sistema = QuadrupleTank(x0=[50,50,50,50], Hmax=50, voltmax=50)
-# sistema.time_scaling = 100 # Para el tiempo
-#
-# for i in range(2000):
-#     series.append(sistema.sim())
-# series = np.array(series)
-# print(series.shape)
-# plt.figure()
-# plt.plot(series[:,0], label='Tanque1')
-# plt.plot(series[:,1], label='Tanque2')
-# plt.plot(series[:,2], label='Tanque3')
-# plt.plot(series[:,3], label='Tanque4')
-# plt.legend()
-# plt.show()
-#
-# np.save('alturas.npy', series)
 
 class Interfaz_grafica():
 
@@ -318,7 +286,6 @@ class Interfaz_grafica():
             self.textSurf.blit(self.font2.render(string4, True, (200, 0, 0)),
                                (self.centrollave2[0] + 30, self.centrollave2[1] + 20))
 
-
     def eventos(self, running, sensibilidad, pump1_act, pump2_act, switch1_act, switch2_act):
         global sistema
         # Diferenciales de cambio
@@ -431,6 +398,7 @@ class Interfaz_grafica():
 # Se declaran después cuando se haga el controlador
 variables_manipuladas = {'Valvula1': 0, 'Valvula2':0 , 'Razon1':0, 'Razon2':0}
 
+
 # Función que se suscribe
 def funcion_handler(node, val):
     key = node.get_parent().get_display_name().Text
@@ -446,6 +414,23 @@ class SubHandler(object): # Clase debe estar en el script porque el thread que c
     def event_notification(self, event):
         #print("Python: New event", event)
         pass
+
+
+def register_data():
+    global MUESTRAS_RAM, KP1, KD1, KI1, KP2, KD2, KI2, REF1, REF2, DATA, registry, sistema
+    if len(registry) > MUESTRAS_RAM:
+        registry.pop(0)
+    data = {'valvula 1': sistema.volt[0], 'valvula 2': sistema.volt[1], 'bomba 1': sistema.gamma[0], 'bomba 2': sistema.gamma[1], 'H1': sistema.x[0], 'H2': sistema.x[1], 'H3': sistema.x[2],  'H4': sistema.x[3], 'KP1': KP1, 'KD1': KD1, 'KI1': KI1, 'KP2': KP2, 'KD2': KD2, 'KI2': KI2, 'REF1': REF1, 'REF2': REF2}
+    registry.append(data)
+    DATA = pd.DataFrame.from_dict(registry)
+    gc.collect()
+
+
+def save_to_disk():
+    global MUESTRAS_RAM, registry
+    df_final = pd.DataFrame.from_dict(registry)
+    df_final.to_csv('final_data_{}_datapoints.csv'.format(str(MUESTRAS_RAM)))
+    del df_final
 
 cliente = Cliente("opc.tcp://localhost:4840/freeopcua/server/", suscribir_eventos=True, SubHandler=SubHandler)
 cliente.conectar()
@@ -466,15 +451,17 @@ fps = 20
 sensibilidad = 0.01 # Cambio de las varibles manipuladas cada vez que se aprieta una tecla
 clock = pygame.time.Clock() # Limita la cantidad de FPS
 first_it = True
+fase = 'Mínima'
 
 sistema = QuadrupleTank(x0=x0, Hmax=Hmax, voltmax=voltmax)
 sistema.time_scaling = 1 # Para el tiempo
 interfaz = Interfaz_grafica(Hmax=Hmax)
 interfaz.paint()
 running = True
-manual = False # Control Manual o automático de las variables
+manual = True # Control Manual o automático de las variables
 t = 0
 alturasMatrix = []
+modo = "Manual"
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -482,6 +469,7 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div(
     html.Div([
         html.H4('Métricas del controlador y del sistema'),
+        html.Div(id='live-update-text'),
         dcc.Graph(id='live-update-graph'),
         dcc.Interval(
             id='interval-component',
@@ -491,13 +479,27 @@ app.layout = html.Div(
     ])
 )
 
+@app.callback(Output('live-update-text', 'children'),
+              Input('interval-component', 'n_intervals'))
+def update_metrics(n):
+    global fase, modo
+    style = {'padding': '5px', 'fontSize': '16px'}
+    return [
+        html.Span('Fase {}'.format(fase), style=style),
+        html.Span('Modo {}'.format(modo), style=style)
+        #html.Span('Altitude: {0:0.2f}'.format(alt), style=style)
+    ]
+
 # Multiple components can update everytime interval gets fired.
 @app.callback(Output('live-update-graph', 'figure'),
               Input('interval-component', 'n_intervals'))
 def update_graph_live(n):
-
-    # Create the graph with subplots
-    fig = plotly.subplots.make_subplots(rows=2, cols=7, vertical_spacing=0.2)
+    global DATA
+    # Create the graph with subplot
+    cols = len(DATA.columns.values)
+    if cols % 2 != 0:
+        cols += 1
+    fig = plotly.subplots.make_subplots(rows=4, cols=int(cols/2), vertical_spacing=0.2)
     fig['layout']['margin'] = {
         'l': 30, 'r': 10, 'b': 30, 't': 10
     }
@@ -507,14 +509,14 @@ def update_graph_live(n):
         'x': DATA.index,
         'y': DATA['valvula 1'],
         'name': 'Válvula 1',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
     }, 1, 1)
     fig.append_trace({
         'x': DATA.index,
         'y': DATA['valvula 2'],
         'name': 'Válvula 2',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
     }, 2, 1)
 
@@ -522,7 +524,7 @@ def update_graph_live(n):
         'x': DATA.index,
         'y': DATA['bomba 1'],
         'name': 'Bomba 1',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
     }, 1, 2)
 
@@ -530,7 +532,7 @@ def update_graph_live(n):
         'x': DATA.index,
         'y': DATA['bomba 2'],
         'name': 'Bomba 2',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
     }, 2, 2)
 
@@ -538,7 +540,7 @@ def update_graph_live(n):
         'x': DATA.index,
         'y': DATA['H1'],
         'name': 'Altura tanque 1',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
     }, 1, 3)
 
@@ -546,7 +548,7 @@ def update_graph_live(n):
         'x': DATA.index,
         'y': DATA['H2'],
         'name': 'Altura tanque 2',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
     }, 2, 3)
 
@@ -554,7 +556,7 @@ def update_graph_live(n):
         'x': DATA.index,
         'y': DATA['H3'],
         'name': 'Altura tanque 3',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
     }, 1, 4)
 
@@ -562,49 +564,73 @@ def update_graph_live(n):
         'x': DATA.index,
         'y': DATA['H4'],
         'name': 'Altura tanque 4',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
     }, 2, 4)
 
     fig.append_trace({
         'x': DATA.index,
-        'y': DATA['KP'],
-        'name': 'Constante proporcional',
-        'mode': 'lines+markers',
+        'y': DATA['KP1'],
+        'name': 'Constante proporcional 1',
+        'mode': 'lines',
         'type': 'scatter'
-    }, 1, 5)
+    }, 3, 1)
 
     fig.append_trace({
         'x': DATA.index,
-        'y': DATA['KD'],
-        'name': 'Constante derivativa',
-        'mode': 'lines+markers',
+        'y': DATA['KD1'],
+        'name': 'Constante derivativa 1',
+        'mode': 'lines',
         'type': 'scatter'
-    }, 2, 5)
+    }, 4, 1)
 
     fig.append_trace({
         'x': DATA.index,
-        'y': DATA['KI'],
-        'name': 'Constante integral',
-        'mode': 'lines+markers',
+        'y': DATA['KI1'],
+        'name': 'Constante integral 1',
+        'mode': 'lines',
         'type': 'scatter'
-    }, 1, 6)
+    }, 3, 2)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['KP2'],
+        'name': 'Constante proporcional 2',
+        'mode': 'lines',
+        'type': 'scatter'
+    }, 4, 2)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['KD2'],
+        'name': 'Constante derivativa 2',
+        'mode': 'lines',
+        'type': 'scatter'
+    }, 3, 3)
+
+    fig.append_trace({
+        'x': DATA.index,
+        'y': DATA['KI2'],
+        'name': 'Constante integral 2',
+        'mode': 'lines',
+        'type': 'scatter'
+    }, 4, 3)
 
     fig.append_trace({
         'x': DATA.index,
         'y': DATA['REF1'],
         'name': 'Referencia 1',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
-    }, 2, 6)
+    }, 3, 4)
 
     fig.append_trace({
         'x': DATA.index,
         'y': DATA['REF2'],
         'name': 'Referencia 2',
-        'mode': 'lines+markers',
+        'mode': 'lines',
         'type': 'scatter'
-    }, 1, 7)
+    }, 4, 4)
 
     return fig
 
@@ -613,7 +639,48 @@ x.start()
 
 gammas = 0
 gammas_ant = 0
+
+error1 = 0
+previous_error1 = 0
+integral1 = 0
+derivative1 = 0
+proporcional1 = 0
+
+error2 = 0
+previous_error2 = 0
+integral2 = 0
+derivative2 = 0
+proporcional2 = 0
+
+subir_kp1 = False
+subir_kd1 = False
+subir_ki1 = False
+
+subir_kp2 = False
+subir_kd2 = False
+subir_ki2 = False
+
+fase_minima = True
+
 while running:
+    register_data()
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                elif event.key == pygame.K_0:
+                    save_to_disk()
+                elif event.key == pygame.K_1:
+                    manual = not manual
+                elif event.key == pygame.K_2:
+                    fase_minima = not fase_minima
+    if manual:
+        modo = "Manual"
+    else:
+        modo = "Automático"
     # Actualización del sistema de forma manual
     if manual:
         running, u = interfaz.eventos(running, sensibilidad, sistema.volt[0], sistema.volt[1], sistema.gamma[0], sistema.gamma[1])
@@ -628,8 +695,10 @@ while running:
             print("==================================")
             if 0 < gammas < 1:
                 print("Fase no mínima")
+                fase = 'No mínima'
             elif 1 < gammas < 2:
                 print("Fase mínima")
+                fase = 'Mínima'
 
         # Envío de los valores por OPC cuando se está en forma manual
         # Obtención de los pumps
@@ -646,7 +715,118 @@ while running:
         gamma1 = cliente.razones['razon1'].get_value()
         gamma2 = cliente.razones['razon2'].get_value()
 
+        if fase_minima:
+            gamma1 = 1
+            gamma2 = 0.5
+        else:
+            gamma1 = 0.4
+            gamma2 = 0.5
+
+        gammas_ant = gammas
+        gammas = sistema.gamma[0] + sistema.gamma[1]
+        if gammas != gammas_ant:
+            print("==================================")
+            if 0 < gammas < 1:
+                print("Fase no mínima")
+                fase = 'No mínima'
+            elif 1 < gammas < 2:
+                print("Fase mínima")
+                fase = 'Mínima'
+
         # ----- controlador -----
+        error1 = REF1 - DATA['H1'][len(DATA) - 1]
+        error2 = REF2 - DATA['H2'][len(DATA) - 1]
+        # print(error1, error2)
+        # aprender constantes
+        if abs(error1) > REF1*0.1:
+            subir_kp1 = True
+        else:
+            subir_kp1 = False
+        if (abs(error1) - abs(previous_error1))*sistema.time_scaling > 0:
+            subir_kd1 = True
+        elif (abs(error1) - abs(previous_error1))*sistema.time_scaling < 0:
+            subir_kd1 = False
+        if integral1 > REF1*0.1:
+            subir_ki1 = not subir_ki1
+
+        if abs(error2) > REF2 * 0.1:
+            subir_kp2 = True
+        else:
+            subir_kp2 = False
+        if (abs(error2) - abs(previous_error2)) * sistema.time_scaling > 0:
+            subir_kd2 = True
+        elif (abs(error2) - abs(previous_error2)) * sistema.time_scaling < 0:
+            subir_kd2 = False
+        if integral2 > REF2*0.1:
+            subir_ki2 = not subir_ki2
+
+        # lazo tanque 1
+        proportional1 = error1
+        integral1 = integral1 + error1*sistema.time_scaling
+        derivative1 = (error1 - previous_error1)*sistema.time_scaling
+        volt1 = KP1*proportional1 + KI1*integral1 + KD1*derivative1
+        previous_error1 = error1
+        # lazo tanque 2
+        proportional2 = error2
+        integral2 = integral2 + error2 * sistema.time_scaling
+        derivative2 = (error2 - previous_error2) * sistema.time_scaling
+        volt2 = KP2 * proportional2 + KI2 * integral2 + KD2 * derivative2
+        previous_error2 = error2
+
+        # ajustar constantes
+        if subir_kd1:
+            KD1 += 0.01
+        else:
+            KD1 -= 0.01
+        if subir_kp1:
+            KP1 += 0.01
+        else:
+            KP1 -= 0.01
+        if subir_ki1:
+            KI1 += 0.001
+        else:
+            KI1 -= 0.001
+
+        if subir_kd2:
+            KD2 += 0.01
+        else:
+            KD2 -= 0.01
+        if subir_kp2:
+            KP2 += 0.01
+        else:
+            KP2 -= 0.01
+        if subir_ki2:
+            KI2 += 0.001
+        else:
+            KI2 -= 0.001
+
+        if KP1 < 0:
+            KP1 = 0
+        if KD1 < 0:
+            KD1 = 0
+        if KI1 < 0:
+            KI1 = 0
+
+        if KP2 < 0:
+            KP2 = 0
+        if KD2 < 0:
+            KD2 = 0
+        if KI2 < 0:
+            KI2 = 0
+
+        # escalar
+        volt1 = volt1*0.1
+        volt2 = volt2*0.1
+
+        # constrain values
+        if volt1 > 1:
+            volt1 = 1
+        elif volt1 < -1:
+            volt1 = -1
+        if volt2 > 1:
+            volt2 = 1
+        elif volt2 < -1:
+            volt2 = -1
 
         if volt1 > 1 or volt1 < -1 or volt2 > 1 or volt2 < -1 \
             or gamma1 > 1 or gamma1 < 0 or gamma2 > 1 or gamma2 < 0:
@@ -660,15 +840,6 @@ while running:
         sistema.volt[1] = volt2
         sistema.gamma[0] = gamma1
         sistema.gamma[1] = gamma2
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-                elif event.key == pygame.K_0:
-                    sistema.save_to_disk()
 
 
 
