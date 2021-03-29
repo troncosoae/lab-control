@@ -30,6 +30,8 @@ REF1 = 30
 REF2 = 30
 DATA = pd.DataFrame(columns=['valvula 1', 'valvula 2', 'bomba 1', 'bomba 2' , 'H1', 'H2', 'H3', 'H4', 'KP1', 'KD1', 'KI1', 'KP2', 'KD2', 'KI2', 'REF1', 'REF2'])
 registry = []
+level_alert = ''
+ant_level_alert = ''
 
 
 class QuadrupleTank():
@@ -414,7 +416,10 @@ class SubHandler(object): # Clase debe estar en el script porque el thread que c
         thread_handler.start()
 
     def event_notification(self, event):
-        #print("Python: New event", event)
+        global level_alert, ant_level_alert
+        if "Nivel" in str(event):
+            ant_level_alert = level_alert
+            level_alert = str(event)
         pass
 
 
@@ -484,12 +489,16 @@ app.layout = html.Div(
 @app.callback(Output('live-update-text', 'children'),
               Input('interval-component', 'n_intervals'))
 def update_metrics(n):
-    global fase, modo
+    global fase, modo, emergency
     style = {'padding': '5px', 'fontSize': '16px'}
+    if emergency:
+        emer = "Activado"
+    else:
+        emer = "No activado"
     return [
         html.Span('Fase {}'.format(fase), style=style),
-        html.Span('Modo {}'.format(modo), style=style)
-        #html.Span('Altitude: {0:0.2f}'.format(alt), style=style)
+        html.Span('Modo {}'.format(modo), style=style),
+        html.Span('Llenado de emergencia de tanques superiores: {}'.format(emer), style=style)
     ]
 
 # Multiple components can update everytime interval gets fired.
@@ -654,6 +663,11 @@ integral2 = 0
 derivative2 = 0
 proporcional2 = 0
 
+error3 = 0
+error4 = 0
+previous_error3 = 0
+previous_error4 = 0
+
 subir_kp1 = False
 subir_kd1 = False
 subir_ki1 = False
@@ -663,6 +677,7 @@ subir_kd2 = False
 subir_ki2 = False
 
 fase_minima = True
+emergency = False
 
 while running:
     register_data()
@@ -763,6 +778,8 @@ while running:
         # ----- controlador -----
         error1 = REF1 - DATA['H1'][len(DATA) - 1]
         error2 = REF2 - DATA['H2'][len(DATA) - 1]
+        error3 = int(Hmax) - DATA['H3'][len(DATA) - 1]
+        error4 = int(Hmax) - DATA['H4'][len(DATA) - 1]
         # print(error1, error2)
         # aprender constantes
         if abs(error1) > REF1*0.01:
@@ -791,11 +808,12 @@ while running:
         else:
             subir_ki2 = False
 
+        emergency = False
         # lazo tanque 1
         proportional1 = error1
-        integral1 = integral1 + error1*sistema.time_scaling
-        derivative1 = (error1 - previous_error1)*sistema.time_scaling
-        volt1 = KP1*proportional1 + KI1*integral1 + KD1*derivative1
+        integral1 = integral1 + error1 * sistema.time_scaling
+        derivative1 = (error1 - previous_error1) * sistema.time_scaling
+        volt1 = KP1 * proportional1 + KI1 * integral1 + KD1 * derivative1
         previous_error1 = error1
         # lazo tanque 2
         proportional2 = error2
@@ -804,6 +822,24 @@ while running:
         volt2 = KP2 * proportional2 + KI2 * integral2 + KD2 * derivative2
         previous_error2 = error2
 
+        # control de tanques superiores para fase no mínima
+        if fase_minima is False and len(level_alert) > 0:
+            emergency = True
+            if "Tanque4" in level_alert and abs(error1) < REF1*0.01:
+                # lazo tanque 1
+                proportional1 = error4
+                integral1 = integral1 + error4 * sistema.time_scaling
+                derivative1 = (error4 - previous_error4) * sistema.time_scaling
+                volt1 = KP1 * proportional1 + KI1 * integral1 + KD1 * derivative1
+                previous_error4 = error4
+            if "Tanque3" in level_alert and abs(error2) < REF2*0.01:
+                # lazo tanque 2
+                proportional2 = error3
+                integral2 = integral2 + error3 * sistema.time_scaling
+                derivative2 = (error3 - previous_error3) * sistema.time_scaling
+                volt2 = KP2 * proportional2 + KI2 * integral2 + KD2 * derivative2
+                previous_error3 = error3
+                level_alert = ''
         # ajustar constantes
         if subir_kd1:
             KD1 += 0.01
