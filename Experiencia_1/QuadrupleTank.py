@@ -18,12 +18,14 @@ import plotly
 import plotly.graph_objs as go
 
 MUESTRAS_RAM = 10000
-KI1 = 0
-KP1 = 1
-KD1 = 1
-KI2 = 0
-KP2 = 1
-KD2 = 1
+KI1 = 0.32
+KP1 = 0
+KD1 = 0.8
+
+KI2 = 0.31
+KP2 = 0
+KD2 = 2.9
+
 REF1 = 30
 REF2 = 30
 DATA = pd.DataFrame(columns=['valvula 1', 'valvula 2', 'bomba 1', 'bomba 2' , 'H1', 'H2', 'H3', 'H4', 'KP1', 'KD1', 'KI1', 'KP2', 'KD2', 'KI2', 'REF1', 'REF2'])
@@ -458,10 +460,10 @@ sistema.time_scaling = 1 # Para el tiempo
 interfaz = Interfaz_grafica(Hmax=Hmax)
 interfaz.paint()
 running = True
-manual = True # Control Manual o automático de las variables
+manual = False # Control Manual o automático de las variables
 t = 0
 alturasMatrix = []
-modo = "Manual"
+modo = "Automático"
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -677,6 +679,30 @@ while running:
                     manual = not manual
                 elif event.key == pygame.K_2:
                     fase_minima = not fase_minima
+                    if fase_minima:
+                        KI1 = 0.32
+                        KP1 = 0
+                        KD1 = 0.8
+
+                        KI2 = 0.31
+                        KP2 = 0
+                        KD2 = 2.9
+                    else:
+                        KI1 = 0.32
+                        KP1 = 0
+                        KD1 = 0.8
+
+                        KI2 = 0.31
+                        KP2 = 0
+                        KD2 = 2.9
+                elif event.key == pygame.K_9:
+                    REF1 += 1
+                elif event.key == pygame.K_8:
+                    REF1 -= 1
+                elif event.key == pygame.K_7:
+                    REF2 += 1
+                elif event.key == pygame.K_6:
+                    REF2 -= 1
     if manual:
         modo = "Manual"
     else:
@@ -716,8 +742,9 @@ while running:
         gamma2 = cliente.razones['razon2'].get_value()
 
         if fase_minima:
-            gamma1 = 1
-            gamma2 = 0.5
+            gamma1 = 0.7
+            gamma2 = 0.6
+
         else:
             gamma1 = 0.4
             gamma2 = 0.5
@@ -738,7 +765,7 @@ while running:
         error2 = REF2 - DATA['H2'][len(DATA) - 1]
         # print(error1, error2)
         # aprender constantes
-        if abs(error1) > REF1*0.1:
+        if abs(error1) > REF1*0.01:
             subir_kp1 = True
         else:
             subir_kp1 = False
@@ -747,9 +774,11 @@ while running:
         elif (abs(error1) - abs(previous_error1))*sistema.time_scaling < 0:
             subir_kd1 = False
         if integral1 > REF1*0.1:
-            subir_ki1 = not subir_ki1
+            subir_ki1 = True
+        else:
+            subir_ki1 = False
 
-        if abs(error2) > REF2 * 0.1:
+        if abs(error2) > REF2 * 0.01:
             subir_kp2 = True
         else:
             subir_kp2 = False
@@ -757,8 +786,10 @@ while running:
             subir_kd2 = True
         elif (abs(error2) - abs(previous_error2)) * sistema.time_scaling < 0:
             subir_kd2 = False
-        if integral2 > REF2*0.1:
-            subir_ki2 = not subir_ki2
+        if integral2 > REF2 * 0.1:
+            subir_ki2 = True
+        else:
+            subir_ki2 = False
 
         # lazo tanque 1
         proportional1 = error1
@@ -779,26 +810,26 @@ while running:
         else:
             KD1 -= 0.01
         if subir_kp1:
-            KP1 += 0.01
+            KP1 += 0.1
         else:
-            KP1 -= 0.01
+            KP1 -= 0.1
         if subir_ki1:
-            KI1 += 0.001
+            KI1 += 0.01
         else:
-            KI1 -= 0.001
+            KI1 -= 0.01
 
         if subir_kd2:
             KD2 += 0.01
         else:
             KD2 -= 0.01
         if subir_kp2:
-            KP2 += 0.01
+            KP2 += 0.1
         else:
-            KP2 -= 0.01
+            KP2 -= 0.1
         if subir_ki2:
-            KI2 += 0.001
+            KI2 += 0.01
         else:
-            KI2 -= 0.001
+            KI2 -= 0.01
 
         if KP1 < 0:
             KP1 = 0
@@ -815,8 +846,8 @@ while running:
             KI2 = 0
 
         # escalar
-        volt1 = volt1*0.1
-        volt2 = volt2*0.1
+        volt1 = volt1*int(Hmax/50)
+        volt2 = volt2*int(Hmax/50)
 
         # constrain values
         if volt1 > 1:
