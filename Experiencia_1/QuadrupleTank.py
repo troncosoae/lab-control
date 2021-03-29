@@ -823,16 +823,16 @@ while running:
         previous_error2 = error2
 
         # control de tanques superiores para fase no mínima
-        if fase_minima is False and len(level_alert) > 0:
+        if fase_minima is False and (len(level_alert) > 0 or DATA['H3'][len(DATA) - 1] < Hmax or DATA['H4'][len(DATA) - 1] < Hmax):
             emergency = True
-            if "Tanque4" in level_alert and abs(error1) < REF1*0.03:
+            if ("Tanque4" in level_alert and abs(error1) < REF1*0.05) or (DATA['H4'][len(DATA) - 1] < Hmax and abs(error1) < REF1*0.03):
                 # lazo tanque 1
                 proportional1 = error4
                 integral1 = integral1 + error4 * sistema.time_scaling
                 derivative1 = (error4 - previous_error4) * sistema.time_scaling
                 volt1 = KP1 * proportional1 + KI1 * integral1 + KD1 * derivative1
                 previous_error4 = error4
-            if "Tanque3" in level_alert and abs(error2) < REF2*0.03:
+            if ("Tanque3" in level_alert and abs(error2) < REF2*0.05) or (DATA['H3'][len(DATA) - 1] < Hmax and abs(error2) < REF2*0.03):
                 # lazo tanque 2
                 proportional2 = error3
                 integral2 = integral2 + error3 * sistema.time_scaling
