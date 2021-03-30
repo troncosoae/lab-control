@@ -470,10 +470,13 @@ t = 0
 alturasMatrix = []
 modo = "Automático"
 
+activo_pasivo = True
+CONSTANTS = ("Kp 1", "Kd 1", "Ki 1", "Kp 2", "Kd 2", "Ki 2")
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.layout = html.Div(
+app.layout = html.Div([
     html.Div([
         html.H4('Métricas del controlador y del sistema'),
         html.Div(id='live-update-text'),
@@ -482,24 +485,59 @@ app.layout = html.Div(
             id='interval-component',
             interval=1*1000, # in milliseconds
             n_intervals=0
-        )
+        )]),
+    html.Div([dcc.Input(
+            id="input_{}".format(_),
+            type="number",
+            placeholder="input type {}".format("number"),
+        ) for _ in CONSTANTS]+ [html.Div(id="out-all-types")])
     ])
-)
+
+
+@app.callback(
+    Output("out-all-types", "children"),
+    [Input("input_{}".format(_), "value") for _ in CONSTANTS])
+def cb_render(*vals):
+    global KP1, KD1, KI1, KP2, KD2, KI2
+    i = 0
+    for val in vals:
+        if val:
+            val = round(float(val), 2)
+            if i == 0:
+                KP1 = val
+            elif i == 1:
+                KD1 = val
+            elif i == 2:
+                KI1 = val
+            elif i == 3:
+                KP2 = val
+            elif i == 4:
+                KD2 = val
+            elif i == 5:
+                KI2 = val
+            i += 1
+    return " | ".join((str(val) for val in vals if val))
+
 
 @app.callback(Output('live-update-text', 'children'),
               Input('interval-component', 'n_intervals'))
 def update_metrics(n):
-    global fase, modo, emergency
+    global fase, modo, emergency, activo_pasivo
     style = {'padding': '5px', 'fontSize': '16px'}
     if emergency:
         emer = "Activado"
     else:
         emer = "No activado"
+    if activo_pasivo:
+        activo = "Activo"
+    else:
+        activo = "Pasivo"
     return [
         html.Span('Fase {}'.format(fase), style=style),
-        html.Span('Modo {}'.format(modo), style=style),
+        html.Span('Modo {} {}'.format(modo, activo), style=style),
         html.Span('Llenado de emergencia de tanques superiores: {}'.format(emer), style=style)
     ]
+
 
 # Multiple components can update everytime interval gets fired.
 @app.callback(Output('live-update-graph', 'figure'),
@@ -593,7 +631,7 @@ def update_graph_live(n):
         'name': 'Constante derivativa 1',
         'mode': 'lines',
         'type': 'scatter'
-    }, 4, 1)
+    }, 3, 2)
 
     fig.append_trace({
         'x': DATA.index,
@@ -601,7 +639,7 @@ def update_graph_live(n):
         'name': 'Constante integral 1',
         'mode': 'lines',
         'type': 'scatter'
-    }, 3, 2)
+    }, 3, 3)
 
     fig.append_trace({
         'x': DATA.index,
@@ -609,7 +647,7 @@ def update_graph_live(n):
         'name': 'Constante proporcional 2',
         'mode': 'lines',
         'type': 'scatter'
-    }, 4, 2)
+    }, 4, 1)
 
     fig.append_trace({
         'x': DATA.index,
@@ -617,7 +655,7 @@ def update_graph_live(n):
         'name': 'Constante derivativa 2',
         'mode': 'lines',
         'type': 'scatter'
-    }, 3, 3)
+    }, 4, 2)
 
     fig.append_trace({
         'x': DATA.index,
@@ -644,6 +682,7 @@ def update_graph_live(n):
     }, 4, 4)
 
     return fig
+
 
 x = threading.Thread(target=app.run_server, args=())
 x.start()
@@ -718,6 +757,8 @@ while running:
                     REF2 += 1
                 elif event.key == pygame.K_6:
                     REF2 -= 1
+                elif event.key == pygame.K_3:
+                    activo_pasivo = not activo_pasivo
     if manual:
         modo = "Manual"
     else:
@@ -759,7 +800,6 @@ while running:
         if fase_minima:
             gamma1 = 0.7
             gamma2 = 0.6
-
         else:
             gamma1 = 0.4
             gamma2 = 0.5
@@ -780,33 +820,34 @@ while running:
         error2 = REF2 - DATA['H2'][len(DATA) - 1]
         error3 = int(Hmax) - DATA['H3'][len(DATA) - 1]
         error4 = int(Hmax) - DATA['H4'][len(DATA) - 1]
-        # print(error1, error2)
-        # aprender constantes
-        if abs(error1) > REF1*0.01:
-            subir_kp1 = True
-        else:
-            subir_kp1 = False
-        if (abs(error1) - abs(previous_error1))*sistema.time_scaling > 0:
-            subir_kd1 = True
-        elif (abs(error1) - abs(previous_error1))*sistema.time_scaling < 0:
-            subir_kd1 = False
-        if integral1 > REF1*0.1:
-            subir_ki1 = True
-        else:
-            subir_ki1 = False
 
-        if abs(error2) > REF2 * 0.01:
-            subir_kp2 = True
-        else:
-            subir_kp2 = False
-        if (abs(error2) - abs(previous_error2)) * sistema.time_scaling > 0:
-            subir_kd2 = True
-        elif (abs(error2) - abs(previous_error2)) * sistema.time_scaling < 0:
-            subir_kd2 = False
-        if integral2 > REF2 * 0.1:
-            subir_ki2 = True
-        else:
-            subir_ki2 = False
+        # aprender constantes
+        if activo_pasivo:
+            if abs(error1) > REF1*0.01:
+                subir_kp1 = True
+            else:
+                subir_kp1 = False
+            if (abs(error1) - abs(previous_error1))*sistema.time_scaling > 0:
+                subir_kd1 = True
+            elif (abs(error1) - abs(previous_error1))*sistema.time_scaling < 0:
+                subir_kd1 = False
+            if integral1 > REF1*0.1:
+                subir_ki1 = True
+            else:
+                subir_ki1 = False
+
+            if abs(error2) > REF2 * 0.01:
+                subir_kp2 = True
+            else:
+                subir_kp2 = False
+            if (abs(error2) - abs(previous_error2)) * sistema.time_scaling > 0:
+                subir_kd2 = True
+            elif (abs(error2) - abs(previous_error2)) * sistema.time_scaling < 0:
+                subir_kd2 = False
+            if integral2 > REF2 * 0.1:
+                subir_ki2 = True
+            else:
+                subir_ki2 = False
 
         emergency = False
         # lazo tanque 1
@@ -840,46 +881,48 @@ while running:
                 volt2 = KP2 * proportional2 + KI2 * integral2 + KD2 * derivative2
                 previous_error3 = error3
                 level_alert = ''
-        # ajustar constantes
-        if subir_kd1:
-            KD1 += 0.01
-        else:
-            KD1 -= 0.01
-        if subir_kp1:
-            KP1 += 0.1
-        else:
-            KP1 -= 0.1
-        if subir_ki1:
-            KI1 += 0.01
-        else:
-            KI1 -= 0.01
 
-        if subir_kd2:
-            KD2 += 0.01
-        else:
-            KD2 -= 0.01
-        if subir_kp2:
-            KP2 += 0.1
-        else:
-            KP2 -= 0.1
-        if subir_ki2:
-            KI2 += 0.01
-        else:
-            KI2 -= 0.01
+        if activo_pasivo:
+            # ajustar constantes
+            if subir_kd1:
+                KD1 += 0.01
+            else:
+                KD1 -= 0.01
+            if subir_kp1:
+                KP1 += 0.1
+            else:
+                KP1 -= 0.1
+            if subir_ki1:
+                KI1 += 0.01
+            else:
+                KI1 -= 0.01
 
-        if KP1 < 0:
-            KP1 = 0
-        if KD1 < 0:
-            KD1 = 0
-        if KI1 < 0:
-            KI1 = 0
+            if subir_kd2:
+                KD2 += 0.01
+            else:
+                KD2 -= 0.01
+            if subir_kp2:
+                KP2 += 0.1
+            else:
+                KP2 -= 0.1
+            if subir_ki2:
+                KI2 += 0.01
+            else:
+                KI2 -= 0.01
 
-        if KP2 < 0:
-            KP2 = 0
-        if KD2 < 0:
-            KD2 = 0
-        if KI2 < 0:
-            KI2 = 0
+            if KP1 < 0:
+                KP1 = 0
+            if KD1 < 0:
+                KD1 = 0
+            if KI1 < 0:
+                KI1 = 0
+
+            if KP2 < 0:
+                KP2 = 0
+            if KD2 < 0:
+                KD2 = 0
+            if KI2 < 0:
+                KI2 = 0
 
         # escalar
         volt1 = volt1*int(Hmax/50)
