@@ -1,10 +1,8 @@
 import numpy as np
 from scipy.integrate import odeint
-import scipy.integrate as integrator
-import matplotlib.pyplot as plt
+from plotly.subplots import make_subplots
 import pygame
 import time
-import sys
 from cliente import Cliente # cliente OPCUA
 import random
 import threading
@@ -14,8 +12,6 @@ import dash
 from dash.dependencies import Output, Input
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly
-import plotly.graph_objs as go
 
 MUESTRAS_RAM = 10000
 KI1 = 0.32
@@ -548,7 +544,7 @@ def update_graph_live(n):
     cols = len(DATA.columns.values)
     if cols % 2 != 0:
         cols += 1
-    fig = plotly.subplots.make_subplots(rows=4, cols=int(cols/2), vertical_spacing=0.2)
+    fig = make_subplots(rows=4, cols=int(cols/2), vertical_spacing=0.2)
     fig['layout']['margin'] = {
         'l': 30, 'r': 10, 'b': 30, 't': 10
     }
