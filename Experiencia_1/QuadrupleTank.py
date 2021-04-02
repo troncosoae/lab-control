@@ -288,7 +288,7 @@ class Interfaz_grafica():
                                (self.centrollave2[0] + 30, self.centrollave2[1] + 20))
 
     def eventos(self, running, sensibilidad, pump1_act, pump2_act, switch1_act, switch2_act):
-        global sistema, manual
+        global sistema, manual, REF1, REF2
         # Diferenciales de cambio
         dpump1 = 0
         dpump2 = 0
@@ -305,6 +305,14 @@ class Interfaz_grafica():
                     save_to_disk()
                 elif event.key == pygame.K_1:
                     manual = not manual
+                elif event.key == pygame.K_9:
+                    REF1 += 1
+                elif event.key == pygame.K_8:
+                    REF1 -= 1
+                elif event.key == pygame.K_7:
+                    REF2 += 1
+                elif event.key == pygame.K_6:
+                    REF2 -= 1
 
             # Control manual de las variables manipuladas
             if event.type == pygame.KEYDOWN:
@@ -521,7 +529,7 @@ def cb_render(*vals):
 @app.callback(Output('live-update-text', 'children'),
               Input('interval-component', 'n_intervals'))
 def update_metrics(n):
-    global fase, modo, emergency, activo_pasivo
+    global fase, modo, emergency, activo_pasivo, level_alert
     style = {'padding': '5px', 'fontSize': '16px'}
     if emergency:
         emer = "Activado"
@@ -531,9 +539,20 @@ def update_metrics(n):
         activo = "Activo"
     else:
         activo = "Pasivo"
+    if "Tanque3" in str(level_alert):
+        tanque3 = "Tanque 3"
+    else:
+        tanque3 = ''
+    if "Tanque4" in str(level_alert):
+        tanque4 = "Tanque 4"
+    else:
+        tanque4 = ''
+    if len(tanque4) == 0 and len(tanque3) == 0:
+        tanque3 = "Ninguna"
     return [
         html.Span('Fase {}'.format(fase), style=style),
         html.Span('Modo {} {}'.format(modo, activo), style=style),
+        html.Span('Alerta de nivel: {} {}'.format(tanque3, tanque4), style=style),
         html.Span('Llenado de emergencia de tanques superiores: {}'.format(emer), style=style)
     ]
 
