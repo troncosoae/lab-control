@@ -12,6 +12,7 @@ import dash
 from dash.dependencies import Output, Input
 import dash_core_components as dcc
 import dash_html_components as html
+import plotly
 
 MUESTRAS_RAM = 10000
 KI1 = 0.32
@@ -512,7 +513,7 @@ def cb_render(*vals):
             elif i == 5:
                 KI2 = val
             i += 1
-    return " | ".join((str(val) for val in vals if val))
+    return "Kp1 | Kd1 | Ki1 | Kp2 | Kd2 | Ki2 ----- \n" + " | ".join((str(val) for val in vals if val))
 
 
 @app.callback(Output('live-update-text', 'children'),
@@ -716,49 +717,13 @@ emergency = False
 
 while running:
     register_data()
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-                elif event.key == pygame.K_0:
-                    save_to_disk()
-                elif event.key == pygame.K_1:
-                    manual = not manual
-                elif event.key == pygame.K_2:
-                    fase_minima = not fase_minima
-                    if fase_minima:
-                        KI1 = 0.32
-                        KP1 = 0
-                        KD1 = 0.8
 
-                        KI2 = 0.31
-                        KP2 = 0
-                        KD2 = 2.9
-                    else:
-                        KI1 = 0.32
-                        KP1 = 0
-                        KD1 = 0.8
-
-                        KI2 = 0.31
-                        KP2 = 0
-                        KD2 = 2.9
-                elif event.key == pygame.K_9:
-                    REF1 += 1
-                elif event.key == pygame.K_8:
-                    REF1 -= 1
-                elif event.key == pygame.K_7:
-                    REF2 += 1
-                elif event.key == pygame.K_6:
-                    REF2 -= 1
-                elif event.key == pygame.K_3:
-                    activo_pasivo = not activo_pasivo
     if manual:
         modo = "Manual"
     else:
         modo = "Automático"
+
+
     # Actualización del sistema de forma manual
     if manual:
         running, u = interfaz.eventos(running, sensibilidad, sistema.volt[0], sistema.volt[1], sistema.gamma[0], sistema.gamma[1])
@@ -787,6 +752,45 @@ while running:
         cliente.razones['razon1'].set_value(u['razon1'])
         cliente.razones['razon2'].set_value(u['razon2'])
     else:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
+                    elif event.key == pygame.K_0:
+                        save_to_disk()
+                    elif event.key == pygame.K_1:
+                        manual = not manual
+                    elif event.key == pygame.K_2:
+                        fase_minima = not fase_minima
+                        if fase_minima:
+                            KI1 = 0.32
+                            KP1 = 0
+                            KD1 = 0.8
+
+                            KI2 = 0.31
+                            KP2 = 0
+                            KD2 = 2.9
+                        else:
+                            KI1 = 0.32
+                            KP1 = 0
+                            KD1 = 0.8
+
+                            KI2 = 0.31
+                            KP2 = 0
+                            KD2 = 2.9
+                    elif event.key == pygame.K_9:
+                        REF1 += 1
+                    elif event.key == pygame.K_8:
+                        REF1 -= 1
+                    elif event.key == pygame.K_7:
+                        REF2 += 1
+                    elif event.key == pygame.K_6:
+                        REF2 -= 1
+                    elif event.key == pygame.K_3:
+                        activo_pasivo = not activo_pasivo
         volt1 = cliente.valvulas['valvula1'].get_value()
         volt2 = cliente.valvulas['valvula2'].get_value()
 
@@ -946,9 +950,6 @@ while running:
         sistema.volt[1] = volt2
         sistema.gamma[0] = gamma1
         sistema.gamma[1] = gamma2
-
-
-
 
     interfaz.screen.blit(interfaz.background, (0, 0))
     interfaz.screen.blit(interfaz.textSurf, (0,0))

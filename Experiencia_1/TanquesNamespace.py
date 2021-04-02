@@ -42,6 +42,8 @@ alarma2 = False
 alarma3 = False
 alarma4 = False
 valor_alarma = 0
+
+
 def funcion_handler(node, val, th, dir):
     global mensaje_alarma, alarma1,alarma2, alarma3, alarma4, valor_alarma
     padre = node.get_parent().get_display_name().Text
