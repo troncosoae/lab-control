@@ -288,7 +288,7 @@ class Interfaz_grafica():
                                (self.centrollave2[0] + 30, self.centrollave2[1] + 20))
 
     def eventos(self, running, sensibilidad, pump1_act, pump2_act, switch1_act, switch2_act):
-        global sistema
+        global sistema, manual
         # Diferenciales de cambio
         dpump1 = 0
         dpump2 = 0
@@ -302,7 +302,9 @@ class Interfaz_grafica():
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 elif event.key == pygame.K_0:
-                    sistema.save_to_disk()
+                    save_to_disk()
+                elif event.key == pygame.K_1:
+                    manual = not manual
 
             # Control manual de las variables manipuladas
             if event.type == pygame.KEYDOWN:
