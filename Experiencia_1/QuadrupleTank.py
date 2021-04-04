@@ -29,6 +29,8 @@ DATA = pd.DataFrame(columns=['valvula 1', 'valvula 2', 'bomba 1', 'bomba 2' , 'H
 registry = []
 level_alert = ''
 ant_level_alert = ''
+UMAX = 1
+UMIN = -1
 
 
 class QuadrupleTank():
@@ -478,7 +480,7 @@ alturasMatrix = []
 modo = "Automático"
 
 activo_pasivo = True
-CONSTANTS = ("Kp 1", "Kd 1", "Ki 1", "Kp 2", "Kd 2", "Ki 2")
+CONSTANTS = ("Kp 1", "Kd 1", "Ki 1", "Kp 2", "Kd 2", "Ki 2", "UMAX", "UMIN")
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -505,7 +507,7 @@ app.layout = html.Div([
     Output("out-all-types", "children"),
     [Input("input_{}".format(_), "value") for _ in CONSTANTS])
 def cb_render(*vals):
-    global KP1, KD1, KI1, KP2, KD2, KI2
+    global KP1, KD1, KI1, KP2, KD2, KI2, UMAX, UMIN
     i = 0
     for val in vals:
         if val:
@@ -522,8 +524,12 @@ def cb_render(*vals):
                 KD2 = val
             elif i == 5:
                 KI2 = val
+            elif i == 6:
+                UMAX = val
+            elif i == 7:
+                UMIN = val
             i += 1
-    return "Kp1 | Kd1 | Ki1 | Kp2 | Kd2 | Ki2 ----- \n" + " | ".join((str(val) for val in vals if val))
+    return "Kp1 | Kd1 | Ki1 | Kp2 | Kd2 | Ki2 | UMAX | UMIN ----- \n" + " | ".join((str(val) for val in vals if val))
 
 
 @app.callback(Output('live-update-text', 'children'),
@@ -875,12 +881,24 @@ while running:
         proportional1 = error1
         integral1 = integral1 + error1 * sistema.time_scaling
         derivative1 = (error1 - previous_error1) * sistema.time_scaling
+
+        # antiwindup tanque 1
+        if integral1 >= UMAX or integral1 <= UMIN:
+            integral1 = 0
+
         volt1 = KP1 * proportional1 + KI1 * integral1 + KD1 * derivative1
         previous_error1 = error1
+
+
         # lazo tanque 2
         proportional2 = error2
         integral2 = integral2 + error2 * sistema.time_scaling
         derivative2 = (error2 - previous_error2) * sistema.time_scaling
+
+        # antiwindup tanque 2
+        if integral2 >= UMAX or integral2 <= UMIN:
+            integral2 = 0
+
         volt2 = KP2 * proportional2 + KI2 * integral2 + KD2 * derivative2
         previous_error2 = error2
 
