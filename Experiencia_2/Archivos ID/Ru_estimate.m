@@ -3,4 +3,7 @@ function R_u = Ru_estimate(tau, a, b, Ts, npts)
     for i = 1 + round(tau/(2*Ts)):npts
         R_u = R_u + a(i)*b(i - round(tau/(2*Ts)))*(1/npts);
     end
+    disp('----- Ru_estimate for tau -----')
+    disp(tau)
+    disp(R_u)
 end

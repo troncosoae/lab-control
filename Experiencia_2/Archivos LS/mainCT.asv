@@ -40,18 +40,86 @@ sim_PRBS = [t, entrada_PRBS', zeros(npts,1)];
 [t_PRBS,x,y_PRBS] = sim('loopshape_id',tfinal,[],sim_PRBS); 
 
 y_PRBS_FILTERED = filter(b,a,y_PRBS);
-W_hamming = hamming(tau_indice);
+W_hamming = hanning(tau_indice);
 
-TF_muestras = zeros(length(0 : (2*pi)*Ts : 2*pi), 1);
+TF_muestras = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
+disturbance_spectrum_muestras = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
+coherence_spectrum_muestras = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
 frecuencias = 0 : (2*pi)/npts : 2*pi;
 
 indice = 1;
 for w = 0 : (2*pi)/npts : 2*pi
-    TF_muestras(indice) = Gw_estimate(w, tau_indice, entrada_PRBS, y_PRBS, npts, Ts, W_hamming);
+    [TF, dist_spect, coherence_spect] = Gw_estimate(w, tau_indice, entrada_PRBS, y_PRBS, npts, Ts, W_hamming);
+    TF_muestras(indice) = TF;
+    disturbance_spectrum_muestras(indice) = dist_spect;
+    coherence_spectrum_muestras(indice) = coherence_spect;
     indice = indice + 1;
 end
 
-resultados = [frecuencias ; TF_muestras']
+[x3 ~] = size(y_PRBS);
+[x1 ~] = size(entrada_PRBS');
+
+c = [entrada_PRBS'; zeros(x3-x1,1)];
+z = [y_PRBS c];
+[G FIV] = spa(z);
+
+np = 3; % numero de polos
+nz = 3; % numero de ceros
+sys = tfest(z,np,nz); % estimacion de funcion de transferencia
+
+opts = bodeoptions('cstprefs');
+opts.Title.String = 'Estimated frequency response (spa)';
+opts.Title.FontSize = 12;
+
+figure
+h = bodeplot(G, opts);
+showConfidence(h,3)
+
+opts = bodeoptions('cstprefs');
+opts.Title.String = 'Estimated transfer function (tfest)';
+opts.Title.FontSize = 12;
+
+figure
+h = bodeplot(sys, opts);
+showConfidence(h,3)
+
+figure
+spect = spectrumplot(G);
+showConfidence(spect,3)
+
+% resultados = [frecuencias/Ts ; TF_muestras']
+
+figure
+grid on
+plot(frecuencias/Ts, mag2db(abs(disturbance_spectrum_muestras')))
+title('Diagrama Espectro de perturbación')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+plot(frecuencias/Ts, mag2db(abs(coherence_spectrum_muestras')))
+title('Diagrama Espectro de coherencia')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+plot(frecuencias/Ts, mag2db(abs(TF_muestras')))
+title('Diagrama G(w) - Magnitud')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+plot(frecuencias/Ts, 57.29*imag(TF_muestras'))
+title('Diagrama G(w) - Fase')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Fase en grados sexagesimales')
 
 % disp('Push any key to begin the plotting section'); pause
 figure
@@ -69,10 +137,10 @@ grid on
 xlabel('t')
 ylabel('Magnitud')
 % disp('paused: push any key to continue'); pause
-figure
-grid on
-plot(t_PRBS,y_PRBS_FILTERED(:,1))
-title('Respuesta a PRBS - versión filtrada con media móvil de ventana tau')
-grid on
-xlabel('t')
-ylabel('Magnitud')
+% figure
+% grid on
+% plot(t_PRBS,y_PRBS_FILTERED(:,1))
+% title('Respuesta a PRBS - versión filtrada con media móvil de ventana tau')
+% grid on
+% xlabel('t')
+% ylabel('Magnitud')

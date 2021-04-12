@@ -1,0 +1,124 @@
+%--------------------------------------------------------------
+%     IEE2683 Laboratorio de Control Automático
+%     Archivo Prueba Caja Negra
+%
+%     José Moreno Rojas
+%
+%--------------------------------------------------------------
+
+clear all
+close all
+clc;
+echo on
+% Se deben hacer pruebas con diferentes entradas.
+echo off
+disp('Push any key to begin the identification routine'); pause
+tic
+echo on
+ 
+% Parametros para la identifiación:
+echo off
+Ts = 0.005     ;      
+tfinal = 5;
+t = (Ts:Ts:tfinal)';
+npts = length(t);
+echo on
+ 
+% El modelo Simulink será simulado a continuación. Primero se construye la
+% entrada del sistema y luego se usa la función sim para simular y capturar
+% los valores de la salida.
+echo off
+
+tau = 0.05;
+tau_indice = round(tau/Ts);
+b = (1/tau_indice)*ones(1,tau_indice);
+a = 1;
+
+prbs = @(N) randi([0 1], 1, N);
+periodo_PRBS = filter(b, a, prbs(tau_indice));
+entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
+c = entrada_PRBS';
+
+u3 = [t, c];
+
+[t3,x3,y3] = sim('BlackBox',tfinal,[],u3);
+
+%Obtener bode por comando spa()
+[x3 ~] = size(y3);
+[x ~] = size(c);
+
+c = [c; zeros(x3-x,1)];
+z = [y3 c];
+[G FIV] = spa(z);
+
+% figure(1)
+% plot(t1,y1)
+% title('Respuesta a u1')
+% xlabel('t')
+% ylabel('Magnitud')
+% 
+% figure(2)
+% plot(t2,y2)
+% title('Respuesta a u2')
+% xlabel('t')
+% ylabel('Magnitud')
+% 
+% figure(3)
+% plot(t3,y3)
+% title('Respuesta a u3')
+% xlabel('t')
+% ylabel('Magnitud')
+% 
+% figure(4)
+% plot(t4,y4)
+% title('Respuesta a u4')
+% xlabel('t')
+% ylabel('Magnitud')
+% 
+opts = bodeoptions('cstprefs');
+opts.Title.String = 'Estimated transfer function (tfest)';
+opts.Title.FontSize = 12;
+opts.FreqUnits = 'Hz'
+
+figure
+bodeplot(G, opts);
+
+%Calcular la función de transferencia correspondiente
+
+% Paso 1: Realizar estimadores de funciones de intercorrelación Ryy, Ryu, Ruu
+
+Ryy = 1/x3 * xcorr(y3, circshift(y3, round(tau_indice/2)));
+Ryu = 1/x3 * xcorr(y3, circshift(c, round(tau_indice/2)));
+Ruu = 1/x3 * xcorr(c, circshift(c, round(tau_indice/2)));
+
+[ry_s ~] = size(Ryy);
+
+% Paso 2: Realizar estimadores de los espectros
+z
+w = hanning(ry_s); %Ventana de Hanning
+% w = [zeros(ry_s,1); w; zeros(ry_s,1)];
+Oyy = fft(Ryy.*w);
+Oyu = fft(Ryu.*w);
+Ouu = fft(Ruu.*w);
+
+% Paso 3: Finalmente se encuentra la función de transferencia estimada
+
+G = Oyu/Ouu;
+
+figure
+plot(mag2db(abs(G)));
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
+
+figure
+plot(imag(G));
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Fase')
+
+
+
+
+
+
