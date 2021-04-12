@@ -8,9 +8,9 @@ echo on
 echo off
 
 tau = 0.05; % periodo de u
-Ts = 0.005;
+Ts = 0.0005;
 tau_indice = round(tau/Ts);
-tfinal = 2;
+tfinal = 5;
 Cs = 0.3; % controlador malo que se debe poner antes de LS
 t = (Ts:Ts:tfinal)';
 b = (1/tau_indice)*ones(1,tau_indice);
@@ -37,7 +37,7 @@ periodo_PRBS = filter(b, a, prbs(tau_indice));
 entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
 sim_PRBS = [t, entrada_PRBS', zeros(npts,1)];
 
-[t_PRBS,x,y_PRBS] = sim('loopshape_id',tfinal,[],sim_PRBS); 
+[t_PRBS,x,y_PRBS] = sim('loopshape',tfinal,[],sim_PRBS); 
 
 y_PRBS_FILTERED = filter(b,a,y_PRBS);
 W_Hanning = hanning(tau_indice);
@@ -72,6 +72,73 @@ for w = 0 : (10*pi)/npts : 10*pi
     indice = indice + 1;
 end
 
+figure
+grid on
+semilogx(frecuencias(1:round(length(disturbance_spectrum_muestras_u1)/2))/Ts, mag2db(abs(disturbance_spectrum_muestras_u1(1:round(length(disturbance_spectrum_muestras_u1)/2))')))
+title('Diagrama Espectro de perturbación u1')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+semilogx(frecuencias(1:round(length(disturbance_spectrum_muestras_u1)/2))/Ts, mag2db(abs(coherence_spectrum_muestras_u1(1:round(length(disturbance_spectrum_muestras_u1)/2))')))
+title('Diagrama Espectro de coherencia u1')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+semilogx(frecuencias(1:round(length(TF_muestras_u1)/2))/Ts, mag2db(abs(TF_muestras_u1(1:round(length(TF_muestras_u1)/2))')))
+title('Diagrama G(w) - Magnitud u1')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+semilogx(frecuencias(1:round(length(TF_muestras_u1)/2))/Ts, 57.29*angle(TF_muestras_u1(1:round(length(TF_muestras_u1)/2))'))
+title('Diagrama G(w) - Fase u1')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Fase en grados sexagesimales')
+
+
+figure
+grid on
+semilogx(frecuencias(1:round(length(disturbance_spectrum_muestras_u2)/2))/Ts, mag2db(abs(disturbance_spectrum_muestras_u2(1:round(length(disturbance_spectrum_muestras_u2)/2))')))
+title('Diagrama Espectro de perturbación u2')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+semilogx(frecuencias(1:round(length(coherence_spectrum_muestras_u2)/2))/Ts, mag2db(abs(coherence_spectrum_muestras_u2(1:round(length(coherence_spectrum_muestras_u2)/2))')))
+title('Diagrama Espectro de coherencia u2')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+semilogx(frecuencias(1:round(length(TF_muestras_u2)/2))/Ts, mag2db(abs(TF_muestras_u2(1:round(length(TF_muestras_u2)/2))')))
+title('Diagrama G(w) - Magnitud u2')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Magnitud en dB')
+
+figure
+grid on
+semilogx(frecuencias(1:round(length(TF_muestras_u2)/2))/Ts, 57.29*angle(TF_muestras_u2(1:round(length(TF_muestras_u2)/2))'))
+title('Diagrama G(w) - Fase u2')
+grid on
+xlabel('Frecuencia en rad/s')
+ylabel('Fase en grados sexagesimales')
+
+disp('Push any key to begin the identification routine'); pause
+
 %Calcular la funciÃ³n de transferencia correspondiente
 
 % Paso 1: Realizar estimadores de funciones de intercorrelaciÃ³n Ryy, Ryu, Ruu
@@ -96,33 +163,35 @@ Gw_u1 = Oyu/Ouu;
 disturbance_u1 = Oyy - abs(Oyu).^2/Ouu;
 coherence_u1 = sqrt(abs(Oyu).^2/(Oyy'*Ouu));
 
+length(Gw_u1)
+
 figure
-plot(mag2db(abs(Gw_u1)));
+semilogx(mag2db(abs(Gw_u1)));
 title('Diagrama de Bode xcorr u1 - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-plot(57.29*imag(Gw_u1));
+semilogx(57.29*angle(Gw_u1));
 title('Diagrama de Bode xcorr u1 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
 
-figure
-plot(mag2db(abs(disturbance_u1)));
-title('Espectro de perturbación u1')
-grid on
-xlabel('Frecuencia en Hz')
-ylabel('Magnitud en dB')
+% figure
+% semilogx(mag2db(abs(disturbance_u1)));
+% title('Espectro de perturbación u1')
+% grid on
+% xlabel('Frecuencia en Hz')
+% ylabel('Magnitud en dB')
 
-figure
-plot(mag2db(abs(coherence_u1)));
-title('Espectro de coherencia u1')
-grid on
-xlabel('Frecuencia en Hz')
-ylabel('Magnitud en dB')
+% figure
+% semilogx(mag2db(abs(coherence_u1)));
+% title('Espectro de coherencia u1')
+% grid on
+% xlabel('Frecuencia en Hz')
+% ylabel('Magnitud en dB')
 
 
 Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
@@ -145,33 +214,37 @@ Gw_u2 = Oyu/Ouu;
 disturbance_u2 = Oyy - abs(Oyu).^2/Ouu;
 coherence_u2 = sqrt(abs(Oyu).^2/(Oyy'*Ouu));
 
+length(Gw_u2)
+
 figure
-plot(mag2db(abs(Gw_u2)));
+semilogx(mag2db(abs(Gw_u2)));
 title('Diagrama de Bode xcorr u2 - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-plot(57.29*imag(Gw_u2));
+semilogx(57.29*angle(Gw_u2));
 title('Diagrama de Bode xcorr u1 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
 
-figure
-plot(mag2db(abs(disturbance_u2)));
-title('Espectro de perturbación u2')
-grid on
-xlabel('Frecuencia en Hz')
-ylabel('Magnitud en dB')
+% figure
+% semilogx(mag2db(abs(disturbance_u2)));
+% title('Espectro de perturbación u2')
+% grid on
+% xlabel('Frecuencia en Hz')
+% ylabel('Magnitud en dB')
 
-figure
-plot(mag2db(abs(coherence_u2)));
-title('Espectro de coherencia u2')
-grid on
-xlabel('Frecuencia en Hz')
-ylabel('Magnitud en dB')
+% figure
+% semilogx(mag2db(abs(coherence_u2)));
+% title('Espectro de coherencia u2')
+% grid on
+% xlabel('Frecuencia en Hz')
+% ylabel('Magnitud en dB')
+
+disp('Push any key to begin the identification routine'); pause
 
 
 figure
@@ -225,74 +298,10 @@ figure
 spect = spectrumplot(G);
 showConfidence(spect,3)
 
-[Cxy,F] = mscohere(y_PRBS, c,W_Hanning);
+[Cxy,F] = mscohere(y_PRBS, c, W_Hanning);
 figure 
 plot(F,Cxy); title('Magnitude-Squared Coherence'); xlabel('Frequency (Hz)'); grid on
 
-figure
-grid on
-plot(frecuencias/Ts, mag2db(abs(disturbance_spectrum_muestras_u1')))
-title('Diagrama Espectro de perturbación u1')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-plot(frecuencias/Ts, mag2db(abs(coherence_spectrum_muestras_u1')))
-title('Diagrama Espectro de coherencia u1')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-plot(frecuencias/Ts, mag2db(abs(TF_muestras_u1')))
-title('Diagrama G(w) - Magnitud u1')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-plot(frecuencias/Ts, 57.29*imag(TF_muestras_u1'))
-title('Diagrama G(w) - Fase u1')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Fase en grados sexagesimales')
-
-
-figure
-grid on
-plot(frecuencias/Ts, mag2db(abs(disturbance_spectrum_muestras_u2')))
-title('Diagrama Espectro de perturbación u2')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-plot(frecuencias/Ts, mag2db(abs(coherence_spectrum_muestras_u2')))
-title('Diagrama Espectro de coherencia u2')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-plot(frecuencias/Ts, mag2db(abs(TF_muestras_u2')))
-title('Diagrama G(w) - Magnitud u2')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-plot(frecuencias/Ts, 57.29*imag(TF_muestras_u2'))
-title('Diagrama G(w) - Fase u2')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Fase en grados sexagesimales')
 
 % disp('Push any key to begin the plotting section'); pause
 % disp('paused: push any key to continue'); pause

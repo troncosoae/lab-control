@@ -19,7 +19,7 @@ echo on
 % Parametros para la identifiaciÃ³n:
 echo off
 Ts = 0.005     ;      
-tfinal = 5;
+tfinal = 20;
 t = (Ts:Ts:tfinal)';
 npts = length(t);
 echo on
@@ -29,7 +29,7 @@ echo on
 % los valores de la salida.
 echo off
 
-tau = 0.05;
+tau = 0.2;
 tau_indice = round(tau/Ts);
 b = (1/tau_indice)*ones(1,tau_indice);
 a = 1;
@@ -110,7 +110,7 @@ figure
 spect = spectrumplot(G2);
 showConfidence(spect,3)
 
-w = hanning(tau_indice); % Ventana de Hanning
+w = hanning(round(tau_indice/2)); % Ventana de Hanning
 [Cxy,F] = mscohere(y3,c,w);
 
 figure 
@@ -142,28 +142,28 @@ disturbance = Oyy - abs(Oyu).^2/Ouu;
 coherence = sqrt(abs(Oyu).^2/(Oyy'*Ouu));
 
 figure
-plot(mag2db(abs(G)));
+semilogx(mag2db(abs(G(1:round(length(G)/2)))));
 title('Diagrama de Bode - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-plot(57.29*imag(G));
+semilogx(angle(57.29*G(1:round(length(G)/2))));
 title('Diagrama de Bode - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
 
 figure
-plot(mag2db(abs(disturbance)));
+semilogx(mag2db(abs(disturbance(1:round(length(disturbance)/2)))));
 title('Espectro de perturbación')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-plot(mag2db(abs(coherence)));
+semilogx(mag2db(abs(coherence(1:round(length(coherence)/2)))));
 title('Espectro de coherencia')
 grid on
 xlabel('Frecuencia en Hz')

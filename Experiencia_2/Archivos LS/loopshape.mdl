@@ -32,7 +32,7 @@ Model {
       UnitExpr		      "inherit"
     }
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.27"
+    ComputedModelVersion    "1.30"
     NumModelReferences	    0
     NumTestPointedSignals   0
     NumProvidedFunctions    0
@@ -83,7 +83,7 @@ Model {
       $ObjectID		      3
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [1026.0, 390.0, 873.0, 653.0]
+      Location		      [939.0, 78.0, 873.0, 653.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		4
@@ -145,9 +145,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "lakat"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Sat Apr 10 18:57:17 2021"
-  RTWModifiedTimeStamp	  539977888
-  ModelVersionFormat	  "1.%<AutoIncrement:27>"
+  LastModifiedDate	  "Mon Apr 12 15:28:54 2021"
+  RTWModifiedTimeStamp	  540138532
+  ModelVersionFormat	  "1.%<AutoIncrement:30>"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "disabled"
@@ -284,7 +284,7 @@ Model {
 	  ZeroCrossControl	  "UseLocalSettings"
 	  ZeroCrossAlgorithm	  "Nonadaptive"
 	  AlgebraicLoopSolver	  "TrustRegion"
-	  SolverInfoToggleStatus  off
+	  SolverInfoToggleStatus  on
 	  IsAutoAppliedInSIP	  off
 	  SolverResetMethod	  "Fast"
 	  PositivePriorityOrder	  off
@@ -982,8 +982,8 @@ Model {
 	PropName		"Components"
       }
       Name		      "Configuration"
-      CurrentDlgPage	      "Code Generation"
-      ConfigPrmDlgPosition    [ 163, 78, 861, 628 ]
+      CurrentDlgPage	      "Solver"
+      ConfigPrmDlgPosition    [ 408, 169, 1106, 719 ]
       ExtraOptions	      ""
     }
     PropName		    "ConfigurationSets"
@@ -1142,7 +1142,7 @@ Model {
   }
   System {
     Name		    "loopshape"
-    Location		    [1026, 390, 1899, 1043]
+    Location		    [939, 78, 1812, 731]
     Open		    on
     PortBlocksUseCompactNotation off
     SetExecutionDomain	    off
