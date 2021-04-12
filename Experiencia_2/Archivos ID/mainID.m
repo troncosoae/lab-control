@@ -120,9 +120,9 @@ plot(F,Cxy); title('Magnitude-Squared Coherence'); xlabel('Frequency (Hz)'); gri
 
 % Paso 1: Realizar estimadores de funciones de intercorrelación Ryy, Ryu, Ruu
 
-Ryy = 1/x3 * xcorr(y3, circshift(y3, round(tau_indice/2)));
-Ryu = 1/x3 * xcorr(y3, circshift(c, round(tau_indice/2)));
-Ruu = 1/x3 * xcorr(c, circshift(c, round(tau_indice/2)));
+Ryy = 1/N * cconv(y3,conj(fliplr(y3)), 2*length(y_PRBS));
+Ryu = 1/N * cconv(y3,conj(fliplr(c)), 2*length(y_PRBS));
+Ruu = 1/N * cconv(c,conj(fliplr(c)),2*length(y_PRBS));
 
 [ry_s ~] = size(Ryy);
 

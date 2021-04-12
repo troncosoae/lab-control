@@ -10,7 +10,7 @@ echo off
 tau = 0.05; % periodo de u
 Ts = 0.0005;
 tau_indice = round(tau/Ts);
-tfinal = 5;
+tfinal = 2;
 Cs = 0.3; % controlador malo que se debe poner antes de LS
 t = (Ts:Ts:tfinal)';
 b = (1/tau_indice)*ones(1,tau_indice);
@@ -32,124 +32,46 @@ echo on
 % Se presentan gr√°ficos de las respuestas
 echo off
 
-prbs = @(N) randi([0 1], 1, N);
-periodo_PRBS = filter(b, a, prbs(tau_indice));
-entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
-sim_PRBS = [t, entrada_PRBS', zeros(npts,1)];
+% prbs = @(N) randi([0 1], 1, N);
+% periodo_PRBS = filter(b, a, prbs(tau_indice));
+% entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
 
-[t_PRBS,x,y_PRBS] = sim('loopshape',tfinal,[],sim_PRBS); 
+divisiones_periodos = 10;
 
-y_PRBS_FILTERED = filter(b,a,y_PRBS);
-W_Hanning = hanning(tau_indice);
+NumChannel = 1;
+Period = npts/divisiones_periodos;
+NumPeriod = round(npts/Period);
+entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
+sim_PRBS = [t, entrada_PRBS, zeros(npts,1)];
 
-TF_muestras_u1 = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
-disturbance_spectrum_muestras_u1 = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
-coherence_spectrum_muestras_u1 = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
-TF_muestras_u2 = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
-disturbance_spectrum_muestras_u2 = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
-coherence_spectrum_muestras_u2 = zeros(length(0 : (2*pi)/npts : 2*pi), 1);
-frecuencias = 0 : (2*pi)/npts : 2*pi;
+tamano_ventana = Period;
+
+[t_PRBS,x,y_PRBS] = sim('loopshape',tfinal,[],sim_PRBS);
+y_PRBS = y_PRBS(1:round(length(y_PRBS)/divisiones_periodos)*round(divisiones_periodos));
+y_aux = reshape(y_PRBS,divisiones_periodos,[]);
+y_PRBS = mean(y_aux);
+c = entrada_PRBS(1:length(y_PRBS));
 
 [x3 ~] = size(y_PRBS);
-[x1 ~] = size(entrada_PRBS');
+[x1 ~] = size(entrada_PRBS);
 
-c = [entrada_PRBS'; zeros(x3-x1,1)];
-
-indice = 1;
-for w = 0 : (10*pi)/npts : 10*pi
-    [TF, dist_spect, coherence_spect] = Gw_estimate(w, tau_indice, c, y_PRBS(:,1), length(y_PRBS), Ts, W_Hanning);
-    TF_muestras_u1(indice) = TF;
-    disturbance_spectrum_muestras_u1(indice) = dist_spect;
-    coherence_spectrum_muestras_u1(indice) = coherence_spect;
-    indice = indice + 1;
-end
-indice = 1;
-for w = 0 : (10*pi)/npts : 10*pi
-    [TF, dist_spect, coherence_spect] = Gw_estimate(w, tau_indice, c, y_PRBS(:,2), length(y_PRBS), Ts, W_Hanning);
-    TF_muestras_u2(indice) = TF;
-    disturbance_spectrum_muestras_u2(indice) = dist_spect;
-    coherence_spectrum_muestras_u2(indice) = coherence_spect;
-    indice = indice + 1;
-end
-
-figure
-grid on
-semilogx(frecuencias(1:round(length(disturbance_spectrum_muestras_u1)/2))/Ts, mag2db(abs(disturbance_spectrum_muestras_u1(1:round(length(disturbance_spectrum_muestras_u1)/2))')))
-title('Diagrama Espectro de perturbaciÛn u1')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-semilogx(frecuencias(1:round(length(disturbance_spectrum_muestras_u1)/2))/Ts, mag2db(abs(coherence_spectrum_muestras_u1(1:round(length(disturbance_spectrum_muestras_u1)/2))')))
-title('Diagrama Espectro de coherencia u1')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-semilogx(frecuencias(1:round(length(TF_muestras_u1)/2))/Ts, mag2db(abs(TF_muestras_u1(1:round(length(TF_muestras_u1)/2))')))
-title('Diagrama G(w) - Magnitud u1')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-semilogx(frecuencias(1:round(length(TF_muestras_u1)/2))/Ts, 57.29*angle(TF_muestras_u1(1:round(length(TF_muestras_u1)/2))'))
-title('Diagrama G(w) - Fase u1')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Fase en grados sexagesimales')
-
-
-figure
-grid on
-semilogx(frecuencias(1:round(length(disturbance_spectrum_muestras_u2)/2))/Ts, mag2db(abs(disturbance_spectrum_muestras_u2(1:round(length(disturbance_spectrum_muestras_u2)/2))')))
-title('Diagrama Espectro de perturbaciÛn u2')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-semilogx(frecuencias(1:round(length(coherence_spectrum_muestras_u2)/2))/Ts, mag2db(abs(coherence_spectrum_muestras_u2(1:round(length(coherence_spectrum_muestras_u2)/2))')))
-title('Diagrama Espectro de coherencia u2')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-semilogx(frecuencias(1:round(length(TF_muestras_u2)/2))/Ts, mag2db(abs(TF_muestras_u2(1:round(length(TF_muestras_u2)/2))')))
-title('Diagrama G(w) - Magnitud u2')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Magnitud en dB')
-
-figure
-grid on
-semilogx(frecuencias(1:round(length(TF_muestras_u2)/2))/Ts, 57.29*angle(TF_muestras_u2(1:round(length(TF_muestras_u2)/2))'))
-title('Diagrama G(w) - Fase u2')
-grid on
-xlabel('Frecuencia en rad/s')
-ylabel('Fase en grados sexagesimales')
-
-disp('Push any key to begin the identification routine'); pause
+% c = [entrada_PRBS; zeros(x3-x1,1)];
 
 %Calcular la funci√≥n de transferencia correspondiente
 
 % Paso 1: Realizar estimadores de funciones de intercorrelaci√≥n Ryy, Ryu, Ruu
 N = length(y_PRBS);
-Ryy = 1/N * xcorr(y_PRBS(:,1), circshift(y_PRBS(:,1), round(tau_indice/2)));
-Ryu = 1/N * xcorr(y_PRBS(:,1), circshift(c, round(tau_indice/2)));
-Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
+% Ryy = 1/N * xcorr(y_PRBS(:,1), circshift(y_PRBS(:,1), round(tau_indice/2)));
+% Ryu = 1/N * xcorr(y_PRBS(:,1), circshift(c, round(tau_indice/2)));
+% Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
+Ryy = 1/N * cconv(y_PRBS(:,1),conj(fliplr(y_PRBS(:,1))), N);
+Ryu = 1/N * cconv(y_PRBS(:,1),conj(fliplr(c)), N);
+Ruu = 1/N * cconv(c,conj(fliplr(c)),N);
 
-[ry_s ~] = size(Ryy);
+lados_ventana = round((length(Ryy) - tamano_ventana)/2);
 
-w = hanning(ry_s); % Ventana de Hanning
+w = hanning(tamano_ventana); % Ventana de Hanning
+w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)];
 
 % Paso 2: Realizar estimadores de los espectros
 % w = [zeros(ry_s,1); w; zeros(ry_s,1)];
@@ -162,8 +84,6 @@ Ouu = fft(Ruu.*w);
 Gw_u1 = Oyu/Ouu;
 disturbance_u1 = Oyy - abs(Oyu).^2/Ouu;
 coherence_u1 = sqrt(abs(Oyu).^2/(Oyy'*Ouu));
-
-length(Gw_u1)
 
 figure
 semilogx(mag2db(abs(Gw_u1)));
@@ -194,13 +114,20 @@ ylabel('Fase en grados')
 % ylabel('Magnitud en dB')
 
 
-Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
-Ryu = 1/N * xcorr(y_PRBS(:,2), circshift(c, round(tau_indice/2)));
-Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
+% Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
+% Ryu = 1/N * xcorr(y_PRBS(:,2), circshift(c, round(tau_indice/2)));
+% Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
+
+Ryy = 1/N * cconv(y_PRBS(:,2),conj(fliplr(y_PRBS(:,2))), 2*length(y_PRBS));
+Ryu = 1/N * cconv(y_PRBS(:,2),conj(fliplr(c)), 2*length(y_PRBS));
+Ruu = 1/N * cconv(c,conj(fliplr(c)),2*length(y_PRBS));
 
 [ry_s ~] = size(Ryy);
 
-w = hanning(ry_s); % Ventana de Hanning
+lados_ventana = round((length(Ryy) - tamano_ventana)/2);
+
+w = hanning(tamano_ventana); % Ventana de Hanning
+w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)];
 
 % Paso 2: Realizar estimadores de los espectros
 % w = [zeros(ry_s,1); w; zeros(ry_s,1)];
@@ -214,8 +141,6 @@ Gw_u2 = Oyu/Ouu;
 disturbance_u2 = Oyy - abs(Oyu).^2/Ouu;
 coherence_u2 = sqrt(abs(Oyu).^2/(Oyy'*Ouu));
 
-length(Gw_u2)
-
 figure
 semilogx(mag2db(abs(Gw_u2)));
 title('Diagrama de Bode xcorr u2 - Magnitud')
@@ -225,7 +150,7 @@ ylabel('Magnitud en dB')
 
 figure
 semilogx(57.29*angle(Gw_u2));
-title('Diagrama de Bode xcorr u1 - Fase')
+title('Diagrama de Bode xcorr u2 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
