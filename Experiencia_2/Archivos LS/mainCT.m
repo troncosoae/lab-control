@@ -42,7 +42,7 @@ NumChannel = 1;
 Period = npts/divisiones_periodos;
 NumPeriod = round(npts/Period);
 entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
-sim_PRBS = [t, entrada_PRBS, zeros(npts,1)];
+sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
 
 tamano_ventana = Period;
 
@@ -51,11 +51,6 @@ y_PRBS = y_PRBS(1:round(length(y_PRBS)/divisiones_periodos)*round(divisiones_per
 y_aux = reshape(y_PRBS,divisiones_periodos,[]);
 y_PRBS = mean(y_aux);
 c = entrada_PRBS(1:length(y_PRBS));
-
-[x3 ~] = size(y_PRBS);
-[x1 ~] = size(entrada_PRBS);
-
-% c = [entrada_PRBS; zeros(x3-x1,1)];
 
 %Calcular la función de transferencia correspondiente
 
@@ -81,20 +76,20 @@ Ouu = fft(Ruu.*w);
 
 % Paso 3: Finalmente se encuentra la función de transferencia estimada
 
-Gw_u1 = Oyu/Ouu;
-disturbance_u1 = Oyy - abs(Oyu).^2/Ouu;
-coherence_u1 = sqrt(abs(Oyu).^2/(Oyy'*Ouu));
+Gw_u1 = Oyu./Ouu;
+disturbance_u1 = Oyy - abs(Oyu).^2./Ouu;
+coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
 
 figure
 semilogx(mag2db(abs(Gw_u1)));
-title('Diagrama de Bode xcorr u1 - Magnitud')
+title('Diagrama de Bode cconv u1 - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
 semilogx(57.29*angle(Gw_u1));
-title('Diagrama de Bode xcorr u1 - Fase')
+title('Diagrama de Bode cconv u1 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
@@ -137,20 +132,20 @@ Ouu = fft(Ruu.*w);
 
 % Paso 3: Finalmente se encuentra la función de transferencia estimada
 
-Gw_u2 = Oyu/Ouu;
-disturbance_u2 = Oyy - abs(Oyu).^2/Ouu;
-coherence_u2 = sqrt(abs(Oyu).^2/(Oyy'*Ouu));
+Gw_u2 = Oyu./Ouu;
+disturbance_u2 = Oyy - abs(Oyu).^2./Ouu;
+coherence_u2 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
 
 figure
 semilogx(mag2db(abs(Gw_u2)));
-title('Diagrama de Bode xcorr u2 - Magnitud')
+title('Diagrama de Bode cconv u2 - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
 semilogx(57.29*angle(Gw_u2));
-title('Diagrama de Bode xcorr u2 - Fase')
+title('Diagrama de Bode cconv u2 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
