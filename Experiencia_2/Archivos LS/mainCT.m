@@ -40,7 +40,7 @@ NumPeriod = round(npts/Period);
 entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
 sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
 
-tamano_ventana = Period;
+tamano_ventana = Period/200;
 
 [t_PRBS,x,y3] = sim('loopshape',tfinal,[],sim_PRBS);
 y_PRBS = y3(1:round(length(y3(1:length(y3)-1 - mod(length(y3),10)))/divisiones_periodos)*round(divisiones_periodos),:);
@@ -71,39 +71,43 @@ w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)]';
 Oyy = fft(Ryy.*w);
 Oyu = fft(Ryu.*w);
 Ouu = fft(Ruu.*w);
+
 % Paso 3: Finalmente se encuentra la funciÃ³n de transferencia estimada
 
 Gw_u1 = fftshift(Oyu./Ouu);
 disturbance_u1 = fftshift(Oyy - abs(Oyu).^2./Ouu);
 coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+diffmag = gradient(mag2db(abs(Gw_u1)));
+diffphase = gradient(57.29*angle(Gw_u1));
+xvect = -1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts));
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(Gw_u1)));
+semilogx(xvect(1:length(diffmag)), [mag2db(abs(Gw_u1(1:length(diffmag)))); mag2db(diffmag)]);
 title('Diagrama de Bode cconv u1 - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), 57.29*angle(Gw_u1));
+semilogx(xvect(1:length(diffphase)), [57.29*angle(Gw_u1(1:length(diffphase))); mag2db(diffphase)]);
 title('Diagrama de Bode cconv u1 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
 
-% figure
-% semilogx(mag2db(abs(disturbance_u1)));
-% title('Espectro de perturbación u1')
-% grid on
-% xlabel('Frecuencia en Hz')
-% ylabel('Magnitud en dB')
+figure
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(disturbance_u1)));
+title('Espectro de perturbación u1')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
 
-% figure
-% semilogx(mag2db(abs(coherence_u1)));
-% title('Espectro de coherencia u1')
-% grid on
-% xlabel('Frecuencia en Hz')
-% ylabel('Magnitud en dB')
+figure
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence_u1));
+title('Espectro de coherencia u1')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
 
 
 % Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
@@ -128,34 +132,37 @@ Ouu = fft(Ruu.*w);
 Gw_u2 = fftshift(Oyu./Ouu);
 disturbance_u2 = fftshift(Oyy - abs(Oyu).^2./Ouu);
 coherence_u2 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+diffmag = gradient(mag2db(abs(Gw_u2)));
+diffphase = gradient(57.29*angle(Gw_u2));
+xvect = -1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts));
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(Gw_u2)));
+semilogx(xvect(1:length(diffmag)), [mag2db(abs(Gw_u2(1:length(diffmag)))); mag2db(diffmag)]);
 title('Diagrama de Bode cconv u2 - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), 57.29*angle(Gw_u2));
+semilogx(xvect(1:length(diffphase)), [57.29*angle(Gw_u2(1:length(diffphase))); mag2db(diffphase)]);
 title('Diagrama de Bode cconv u2 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
 
-% figure
-% semilogx(mag2db(abs(disturbance_u2)));
-% title('Espectro de perturbación u2')
-% grid on
-% xlabel('Frecuencia en Hz')
-% ylabel('Magnitud en dB')
+figure
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(disturbance_u2)));
+title('Espectro de perturbación u2')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
 
-% figure
-% semilogx(mag2db(abs(coherence_u2)));
-% title('Espectro de coherencia u2')
-% grid on
-% xlabel('Frecuencia en Hz')
-% ylabel('Magnitud en dB')
+figure
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence_u2));
+title('Espectro de coherencia u2')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
 
 disp('Push any key to begin the identification routine'); pause
 

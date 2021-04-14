@@ -39,7 +39,7 @@ Period = npts/divisiones_periodos;
 NumPeriod = round(npts/Period);
 entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
 
-tamano_ventana = Period/50;
+tamano_ventana = Period/200;
 b = (1/Period)*ones(1,NumPeriod);
 a = 1;
 
@@ -98,17 +98,19 @@ Ouu = fft(Ruu.*w);
 
 G = fftshift(Oyu./Ouu);
 disturbance = fftshift(Oyy - abs(Oyu).^2./Ouu);
-coherence = fftshift(sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu)));
-
+coherence = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+diffmag = gradient(mag2db(abs(G)));
+diffphase = gradient(57.29*angle(G));
+xvect = (-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)));
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(G)));
+semilogx(xvect(1:length(diffmag)), [mag2db(abs(G(1:length(diffmag)))); mag2db(diffmag)]);
 title('Diagrama de Bode - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), 57.29*angle(G));
+semilogx(xvect(1:length(diffphase)), [57.29*angle(G(1:length(diffphase))); mag2db(diffphase)]);
 title('Diagrama de Bode - Fase')
 grid on
 xlabel('Frecuencia en Hz')
