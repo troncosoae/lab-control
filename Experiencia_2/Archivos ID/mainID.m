@@ -39,7 +39,7 @@ Period = npts/divisiones_periodos;
 NumPeriod = round(npts/Period);
 entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
 
-tamano_ventana = Period/200;
+tamano_ventana = Period/50;
 b = (1/Period)*ones(1,NumPeriod);
 a = 1;
 
@@ -99,8 +99,8 @@ Ouu = fft(Ruu.*w);
 G = fftshift(Oyu./Ouu);
 disturbance = fftshift(Oyy - abs(Oyu).^2./Ouu);
 coherence = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
-diffmag = gradient(mag2db(abs(G)));
-diffphase = gradient(57.29*angle(G));
+diffmag = diff(mag2db(abs(G)));
+diffphase = diff(57.29*angle(G));
 xvect = (-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)));
 figure
 semilogx(xvect(1:length(diffmag)), [mag2db(abs(G(1:length(diffmag)))); mag2db(diffmag)]);
