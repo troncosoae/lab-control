@@ -23,10 +23,6 @@ echo on
 % los valores de la salida.
 echo off
 
-% u1 = [t, 2*ones(npts,1), zeros(npts,1)];     
-% u2 = [t, -2*ones(npts,1), zeros(npts,1)];         
-% [t1,x,y1] = sim('loopshape_id',tfinal,[],u1);        
-% [t2,x,y2] = sim('loopshape_id',tfinal,[],u2);
 toc
 echo on
 % Se presentan gráficos de las respuestas
@@ -36,7 +32,7 @@ echo off
 % periodo_PRBS = filter(b, a, prbs(tau_indice));
 % entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
 
-divisiones_periodos = 10;
+divisiones_periodos = 2;
 
 NumChannel = 1;
 Period = npts/divisiones_periodos;
@@ -46,49 +42,50 @@ sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
 
 tamano_ventana = Period;
 
-[t_PRBS,x,y_PRBS] = sim('loopshape',tfinal,[],sim_PRBS);
-y_PRBS = y_PRBS(1:round(length(y_PRBS)/divisiones_periodos)*round(divisiones_periodos));
-y_aux = reshape(y_PRBS,divisiones_periodos,[]);
-y_PRBS = mean(y_aux);
-c = entrada_PRBS(1:length(y_PRBS));
+[t_PRBS,x,y3] = sim('loopshape',tfinal,[],sim_PRBS);
+y_PRBS = y3(1:round(length(y3(1:length(y3)-1 - mod(length(y3),10)))/divisiones_periodos)*round(divisiones_periodos),:);
+y_aux = reshape(y_PRBS(:,1),divisiones_periodos,[]);
+y_PRBS1 = mean(y_aux);
+y_aux = reshape(y_PRBS(:,2),divisiones_periodos,[]);
+y_PRBS2 = mean(y_aux);
+c = entrada_PRBS(1:length(y_PRBS1))';
 
 %Calcular la función de transferencia correspondiente
 
 % Paso 1: Realizar estimadores de funciones de intercorrelación Ryy, Ryu, Ruu
-N = length(y_PRBS);
+N = length(y_PRBS1);
 % Ryy = 1/N * xcorr(y_PRBS(:,1), circshift(y_PRBS(:,1), round(tau_indice/2)));
 % Ryu = 1/N * xcorr(y_PRBS(:,1), circshift(c, round(tau_indice/2)));
 % Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
-Ryy = 1/N * cconv(y_PRBS(:,1),conj(fliplr(y_PRBS(:,1))), N);
-Ryu = 1/N * cconv(y_PRBS(:,1),conj(fliplr(c)), N);
+Ryy = 1/N * cconv(y_PRBS1,conj(fliplr(y_PRBS1)), N);
+Ryu = 1/N * cconv(y_PRBS1,conj(fliplr(c)), N);
 Ruu = 1/N * cconv(c,conj(fliplr(c)),N);
 
 lados_ventana = round((length(Ryy) - tamano_ventana)/2);
 
 w = hanning(tamano_ventana); % Ventana de Hanning
-w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)];
+w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)]';
 
 % Paso 2: Realizar estimadores de los espectros
 % w = [zeros(ry_s,1); w; zeros(ry_s,1)];
 Oyy = fft(Ryy.*w);
 Oyu = fft(Ryu.*w);
 Ouu = fft(Ruu.*w);
-
 % Paso 3: Finalmente se encuentra la función de transferencia estimada
 
-Gw_u1 = Oyu./Ouu;
-disturbance_u1 = Oyy - abs(Oyu).^2./Ouu;
+Gw_u1 = fftshift(Oyu./Ouu);
+disturbance_u1 = fftshift(Oyy - abs(Oyu).^2./Ouu);
 coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
 
 figure
-semilogx(mag2db(abs(Gw_u1)));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(Gw_u1)));
 title('Diagrama de Bode cconv u1 - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(57.29*angle(Gw_u1));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), 57.29*angle(Gw_u1));
 title('Diagrama de Bode cconv u1 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
@@ -112,39 +109,35 @@ ylabel('Fase en grados')
 % Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
 % Ryu = 1/N * xcorr(y_PRBS(:,2), circshift(c, round(tau_indice/2)));
 % Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
-
-Ryy = 1/N * cconv(y_PRBS(:,2),conj(fliplr(y_PRBS(:,2))), 2*length(y_PRBS));
-Ryu = 1/N * cconv(y_PRBS(:,2),conj(fliplr(c)), 2*length(y_PRBS));
-Ruu = 1/N * cconv(c,conj(fliplr(c)),2*length(y_PRBS));
-
-[ry_s ~] = size(Ryy);
+N = length(y_PRBS2);
+Ryy = 1/N * cconv(y_PRBS2,conj(fliplr(y_PRBS2)), N);
+Ryu = 1/N * cconv(y_PRBS2,conj(fliplr(c)), N);
+Ruu = 1/N * cconv(c,conj(fliplr(c)), N);
 
 lados_ventana = round((length(Ryy) - tamano_ventana)/2);
 
 w = hanning(tamano_ventana); % Ventana de Hanning
-w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)];
+w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)]';
 
 % Paso 2: Realizar estimadores de los espectros
-% w = [zeros(ry_s,1); w; zeros(ry_s,1)];
 Oyy = fft(Ryy.*w);
 Oyu = fft(Ryu.*w);
 Ouu = fft(Ruu.*w);
-
 % Paso 3: Finalmente se encuentra la función de transferencia estimada
 
-Gw_u2 = Oyu./Ouu;
-disturbance_u2 = Oyy - abs(Oyu).^2./Ouu;
+Gw_u2 = fftshift(Oyu./Ouu);
+disturbance_u2 = fftshift(Oyy - abs(Oyu).^2./Ouu);
 coherence_u2 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
 
 figure
-semilogx(mag2db(abs(Gw_u2)));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(Gw_u2)));
 title('Diagrama de Bode cconv u2 - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(57.29*angle(Gw_u2));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), 57.29*angle(Gw_u2));
 title('Diagrama de Bode cconv u2 - Fase')
 grid on
 xlabel('Frecuencia en Hz')

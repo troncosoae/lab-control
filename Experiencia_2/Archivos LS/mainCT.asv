@@ -23,10 +23,6 @@ echo on
 % los valores de la salida.
 echo off
 
-% u1 = [t, 2*ones(npts,1), zeros(npts,1)];     
-% u2 = [t, -2*ones(npts,1), zeros(npts,1)];         
-% [t1,x,y1] = sim('loopshape_id',tfinal,[],u1);        
-% [t2,x,y2] = sim('loopshape_id',tfinal,[],u2);
 toc
 echo on
 % Se presentan gráficos de las respuestas
@@ -46,21 +42,23 @@ sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
 
 tamano_ventana = Period;
 
-[t_PRBS,x,y_PRBS] = sim('loopshape',tfinal,[],sim_PRBS);
-y_PRBS = y_PRBS(1:round(length(y_PRBS)/divisiones_periodos)*round(divisiones_periodos));
-y_aux = reshape(y_PRBS,divisiones_periodos,[]);
-y_PRBS = mean(y_aux);
+[t_PRBS,x,y3] = sim('loopshape',tfinal,[],sim_PRBS);
+y_PRBS = y3(1:round(length(y3(1:length(y3)-1 - mod(length(y3),10)))/divisiones_periodos)*round(divisiones_periodos));
+y_aux = reshape(y_PRBS(:,1),divisiones_periodos,[]);
+y_PRBS1 = mean(y_aux);
+y_aux = reshape(y_PRBS(:,2),divisiones_periodos,[]);
+y_PRBS2 = mean(y_aux);
 c = entrada_PRBS(1:length(y_PRBS));
 
 %Calcular la función de transferencia correspondiente
 
 % Paso 1: Realizar estimadores de funciones de intercorrelación Ryy, Ryu, Ruu
-N = length(y_PRBS);
+N = length(y_PRBS1);
 % Ryy = 1/N * xcorr(y_PRBS(:,1), circshift(y_PRBS(:,1), round(tau_indice/2)));
 % Ryu = 1/N * xcorr(y_PRBS(:,1), circshift(c, round(tau_indice/2)));
 % Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
-Ryy = 1/N * cconv(y_PRBS(:,1),conj(fliplr(y_PRBS(:,1))), N);
-Ryu = 1/N * cconv(y_PRBS(:,1),conj(fliplr(c)), N);
+Ryy = 1/N * cconv(y_PRBS1,conj(fliplr(y_PRBS1)), N);
+Ryu = 1/N * cconv(y_PRBS1,conj(fliplr(c)), N);
 Ruu = 1/N * cconv(c,conj(fliplr(c)),N);
 
 lados_ventana = round((length(Ryy) - tamano_ventana)/2);
@@ -113,9 +111,9 @@ ylabel('Fase en grados')
 % Ryu = 1/N * xcorr(y_PRBS(:,2), circshift(c, round(tau_indice/2)));
 % Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
 
-Ryy = 1/N * cconv(y_PRBS(:,2),conj(fliplr(y_PRBS(:,2))), 2*length(y_PRBS));
-Ryu = 1/N * cconv(y_PRBS(:,2),conj(fliplr(c)), 2*length(y_PRBS));
-Ruu = 1/N * cconv(c,conj(fliplr(c)),2*length(y_PRBS));
+Ryy = 1/N * cconv(y_PRBS2,conj(fliplr(y_PRBS2)), length(y_PRBS2));
+Ryu = 1/N * cconv(y_PRBS(:,2),conj(fliplr(c)), length(y_PRBS2));
+Ruu = 1/N * cconv(c,conj(fliplr(c)),length(y_PRBS2));
 
 [ry_s ~] = size(Ryy);
 
@@ -125,7 +123,6 @@ w = hanning(tamano_ventana); % Ventana de Hanning
 w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)];
 
 % Paso 2: Realizar estimadores de los espectros
-% w = [zeros(ry_s,1); w; zeros(ry_s,1)];
 Oyy = fft(Ryy.*w);
 Oyu = fft(Ryu.*w);
 Ouu = fft(Ruu.*w);

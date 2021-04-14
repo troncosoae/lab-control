@@ -50,10 +50,10 @@ a = 1;
 u3 = [t, entrada_PRBS];
 [t3,x3,y3] = sim('BlackBox',tfinal,[],u3);
 y3 = detrend(y3);
-y_PRBS = y3(1:round(length(y3(1:length(y3)-1))/divisiones_periodos)*round(divisiones_periodos));
+y_PRBS = y3(1:round(length(y3(1:length(y3)-1 - mod(length(y3),10)))/divisiones_periodos)*round(divisiones_periodos));
 y_aux = reshape(y_PRBS,divisiones_periodos,[]);
-y_PRBS_ant = mean(y_aux);
-c = entrada_PRBS(1:length(y_PRBS_ant));
+y_PRBS = mean(y_aux);
+c = entrada_PRBS(1:length(y_PRBS))';
 % y_PRBS = filter(b, a, y_PRBS_ant);
 % y_PRBS = lowpass(y_PRBS,150,1e3);
 
@@ -69,51 +69,68 @@ Ruu = 1/N * cconv(c,conj(fliplr(c)), N);
 lados_ventana = round((length(Ryy) - tamano_ventana)/2);
 
 w = hanning(tamano_ventana); % Ventana de Hanning
-w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)];
+w = [zeros(lados_ventana, 1) ; w ; zeros(lados_ventana, 1)]';
 
-Oyy = zeros(size(Ryy));
-maxfreq = 2*pi;
-for k = 0:10
-    for tau = 1:NumPeriod
-        frecuencia = 2*pi*k/N;
-        Oyy = (Ryy.*w)*exp(li*frecuencia*tau);
-        Oyu = (Ryu.*w)*exp(li*frecuencia*tau);
-        Ouu = (Ryu.*w)*exp(li*frecuencia*tau);
-    end
-end
+%Oyy = zeros(length(Ryy), 1);
+%Oyu = zeros(length(Ryu), 1);
+%Ouu = zeros(length(Ruu), 1);
+
+%yy = (Ryy.*w);
+%yu = (Ryu.*w);
+%uu = (Ryu.*w);
+
+%for k = 0:length(Ryy)-1
+%    frecuencia = 2*pi*k/N;
+%    t1 = 0;
+%    t2 = 0;
+%    t3 = 0;
+%    for tau = 1:NumPeriod
+%        t1 = t1 + yy(1 + k)*exp(1i*frecuencia*tau);
+%        t2 = t2 + yu(1 + k)*exp(1i*frecuencia*tau);
+%        t3 = t3 + uu(1 + k)*exp(1i*frecuencia*tau);
+%    end
+%    Oyy(1 + k) = t1;
+%    Oyu(1 + k) = t2;
+%    Ouu(1 + k) = t3;
+%end
+ % esto es lo que había antes, hay que escribir la fórmula del profe (14)
+ % en Identificacion.pdf
+Oyy = fft(Ryy.*w);
+Oyu = fft(Ryu.*w);
+Ouu = fft(Ruu.*w);
 % Paso 3: Finalmente se encuentra la funciÃ³n de transferencia estimada
 
-G = Oyu./Ouu;
-disturbance = Oyy - abs(Oyu).^2./Ouu;
-coherence = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+G = fftshift(Oyu./Ouu);
+disturbance = fftshift(Oyy - abs(Oyu).^2./Ouu);
+coherence = fftshift(sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu)));
 
 figure
-semilogx(mag2db(abs(G)));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(G)));
 title('Diagrama de Bode - Magnitud')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(57.29*angle(G));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), 57.29*angle(G));
 title('Diagrama de Bode - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
 
 figure
-semilogx(mag2db(abs(disturbance)));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(disturbance)));
 title('Espectro de perturbación')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(coherence);
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts))coherence);
 title('Espectro de coherencia')
 grid on
 xlabel('Frecuencia en Hz')
-ylabel('Magnitud en dB')
+ylabel('Magnitud')
 
 disp('Push any key to begin the identification routine'); pause
 
