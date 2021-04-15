@@ -38,7 +38,11 @@ c_zero = 25;
 NumChannel = 1;
 Period = npts/divisiones_periodos;
 NumPeriod = round(npts/Period);
-entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
+% entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
+prbs = @(N) randi([-1 1], 1, N);
+% periodo_PRBS = filter(b, a, prbs(tau_indice));
+periodo_PRBS = prbs(Period);
+entrada_PRBS = transpose(repmat(periodo_PRBS, 1, NumPeriod));
 sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
 
 tamano_ventana = Period/50;
@@ -118,6 +122,7 @@ ylabel('Magnitud en dB')
 % xlabel('Frecuencia en Hz')
 % ylabel('Magnitud en dB')
 
+%%
 opts = bodeoptions('cstprefs');
 opts.Title.String = 'Estimated transfer function u1';
 opts.Title.FontSize = 12;
@@ -133,6 +138,7 @@ figure
 polarplot(theta,Gw_u1)
 title("Polat plot transfer function u1")
 
+%%
 % Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
 % Ryu = 1/N * xcorr(y_PRBS(:,2), circshift(c, round(tau_indice/2)));
 % Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
@@ -188,6 +194,8 @@ grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
+
+%%
 figure
 polarplot(theta,Gw_u2)
 title("Polat plot transfer function u2")
