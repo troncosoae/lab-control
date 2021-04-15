@@ -127,6 +127,12 @@ figure
 frdata = idfrd(Gw_u1,xvect,Ts);
 bode(frdata, opts)
 
+theta = -10*pi:(20*pi)*Ts:10*pi;
+theta = theta(1:length(y_PRBS1));
+figure
+polarplot(theta,Gw_u1)
+title("Polat plot transfer function u1")
+
 % Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
 % Ryu = 1/N * xcorr(y_PRBS(:,2), circshift(c, round(tau_indice/2)));
 % Ruu = 1/N * xcorr(c, circshift(c, round(tau_indice/2)));
@@ -181,6 +187,10 @@ title('Espectro de coherencia u2')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
+
+figure
+polarplot(theta,Gw_u2)
+title("Polat plot transfer function u2")
 
 % figure
 % semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence_u2));
