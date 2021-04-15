@@ -33,6 +33,7 @@ echo off
 % entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
 
 divisiones_periodos = 2;
+c_zero = 25;
 
 NumChannel = 1;
 Period = npts/divisiones_periodos;
@@ -75,10 +76,11 @@ Ouu = fft(Ruu.*w);
 % Paso 3: Finalmente se encuentra la función de transferencia estimada
 
 Gw_u1 = fftshift(Oyu./Ouu);
-disturbance_u1 = fftshift(Oyy - abs(Oyu).^2./Ouu);
-coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
-diffmag = gradient(mag2db(abs(Gw_u1)));
-diffphase = gradient(57.29*angle(Gw_u1));
+disturbance_u1 = fftshift(Oyy - (Oyu.*conj(Oyu))./Ouu);
+% coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+coherence_u1 = mscohere(y_PRBS1, c, w);
+diffmag = diff(mag2db(abs(Gw_u1)));
+diffphase = diff(-57.29*angle(Gw_u1));
 xvect = -1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts));
 
 figure
@@ -89,7 +91,7 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(xvect(1:length(diffphase)), [57.29*angle(Gw_u1(1:length(diffphase))); mag2db(diffphase)]);
+semilogx(xvect(1:length(diffphase)), [-57.29*angle(Gw_u1(1:length(diffphase))); mag2db(diffphase)]);
 title('Diagrama de Bode cconv u1 - Fase')
 grid on
 xlabel('Frecuencia en Hz')
@@ -103,12 +105,27 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence_u1));
+semilogx(coherence_u1);
 title('Espectro de coherencia u1')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
+% figure
+% semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence_u1));
+% title('Espectro de coherencia u1')
+% grid on
+% xlabel('Frecuencia en Hz')
+% ylabel('Magnitud en dB')
+
+opts = bodeoptions('cstprefs');
+opts.Title.String = 'Estimated transfer function u1';
+opts.Title.FontSize = 12;
+opts.FreqUnits = 'Hz';
+
+figure
+frdata = idfrd(Gw_u1,xvect,Ts);
+bode(frdata, opts)
 
 % Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
 % Ryu = 1/N * xcorr(y_PRBS(:,2), circshift(c, round(tau_indice/2)));
@@ -130,8 +147,9 @@ Ouu = fft(Ruu.*w);
 % Paso 3: Finalmente se encuentra la función de transferencia estimada
 
 Gw_u2 = fftshift(Oyu./Ouu);
-disturbance_u2 = fftshift(Oyy - abs(Oyu).^2./Ouu);
-coherence_u2 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+disturbance_u2 = fftshift(Oyy - (Oyu.*conj(Oyu))./Ouu);
+% coherence_u2 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+coherence_u2 = mscohere(y_PRBS2, c, w);
 diffmag = gradient(mag2db(abs(Gw_u2)));
 diffphase = gradient(57.29*angle(Gw_u2));
 xvect = -1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts));
@@ -158,11 +176,27 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence_u2));
+semilogx(coherence_u2);
 title('Espectro de coherencia u2')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
+
+% figure
+% semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence_u2));
+% title('Espectro de coherencia u2')
+% grid on
+% xlabel('Frecuencia en Hz')
+% ylabel('Magnitud en dB')
+
+opts = bodeoptions('cstprefs');
+opts.Title.String = 'Estimated transfer function u2';
+opts.Title.FontSize = 12;
+opts.FreqUnits = 'Hz';
+
+figure
+frdata = idfrd(Gw_u2,xvect,Ts);
+bode(frdata, opts)
 
 disp('Push any key to begin the identification routine'); pause
 

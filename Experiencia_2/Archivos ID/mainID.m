@@ -97,10 +97,12 @@ Ouu = fft(Ruu.*w);
 % Paso 3: Finalmente se encuentra la función de transferencia estimada
 
 G = fftshift(Oyu./Ouu);
-disturbance = fftshift(Oyy - abs(Oyu).^2./Ouu);
-coherence = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+disturbance = fftshift(Oyy - (Oyu.*conj(Oyu))./Ouu);
+% coherence = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+% disturbance = pspectrum(y_PRBS, 1/Ts);
+coherence = mscohere(y_PRBS, c, w);
 diffmag = diff(mag2db(abs(G)));
-diffphase = diff(57.29*angle(G));
+diffphase = diff(-57.29*angle(G));
 xvect = (-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)));
 figure
 semilogx(xvect(1:length(diffmag)), [mag2db(abs(G(1:length(diffmag)))); mag2db(diffmag)]);
@@ -110,11 +112,18 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(xvect(1:length(diffphase)), [57.29*angle(G(1:length(diffphase))); mag2db(diffphase)]);
+semilogx(xvect(1:length(diffphase)), [-57.29*angle(G(1:length(diffphase))); mag2db(diffphase)]);
 title('Diagrama de Bode - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
+
+% figure
+% semilogx(xvect(1:length(diffphase)), [angle(G(1:length(diffphase))); mag2db(diffphase)]);
+% title('Diagrama de Bode - Fase')
+% grid on
+% xlabel('Frecuencia en Hz')
+% ylabel('Fase en rad/s')
 
 figure
 semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(disturbance)));
@@ -124,11 +133,22 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence));
+semilogx(coherence);
 title('Espectro de coherencia')
 grid on
 xlabel('Frecuencia en Hz')
-ylabel('Magnitud')
+ylabel('Magnitud en dB')
+
+% figure
+% semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), abs(coherence));
+% title('Espectro de coherencia')
+% grid on
+% xlabel('Frecuencia en Hz')
+% ylabel('Magnitud')
+
+figure
+frdata = idfrd(G,xvect,Ts);
+bode(frdata)
 
 disp('Push any key to begin the identification routine'); pause
 
