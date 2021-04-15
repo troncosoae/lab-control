@@ -28,20 +28,22 @@ echo off
 tau = 0.2;
 tau_indice = round(tau/Ts);
 
-% prbs = @(N) randi([0 1], 1, N);
-% periodo_PRBS = filter(b, a, prbs(tau_indice));
-% entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
-% c = entrada_PRBS';
-divisiones_periodos = 2;
 
+divisiones_periodos = 5;
 NumChannel = 1;
 Period = npts/divisiones_periodos;
 NumPeriod = round(npts/Period);
-entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
+% entrada_PRBS = idinput([Period,NumChannel,NumPeriod]);
 
 tamano_ventana = Period/50;
 b = (1/Period)*ones(1,NumPeriod);
 a = 1;
+
+prbs = @(N) randi([-1 1], 1, N);
+% periodo_PRBS = filter(b, a, prbs(tau_indice));
+periodo_PRBS = prbs(Period);
+entrada_PRBS = transpose(repmat(periodo_PRBS, 1, NumPeriod));
+c = entrada_PRBS';
 
 u3 = [t, entrada_PRBS];
 [t3,x3,y3] = sim('BlackBox',tfinal,[],u3);
@@ -145,6 +147,9 @@ ylabel('Magnitud en dB')
 % grid on
 % xlabel('Frecuencia en Hz')
 % ylabel('Magnitud')
+
+
+%%
 
 figure
 frdata = idfrd(G,xvect,Ts);
