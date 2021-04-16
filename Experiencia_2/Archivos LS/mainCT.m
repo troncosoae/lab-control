@@ -87,6 +87,21 @@ diffmag = diff(mag2db(abs(Gw_u1)));
 diffphase = diff(-57.29*angle(Gw_u1));
 xvect = -1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts));
 
+figure 
+Gx = Gw_u1./(1 + Gw_u1);
+semilogx(xvect(1:length(diffmag)), mag2db(abs(Gx(1:length(diffmag)))));
+title('Diagrama de Bode Gx - Magnitud')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
+figure
+semilogx(xvect(1:length(diffphase)), -57.29*angle(Gx(1:length(diffphase))));
+title('Diagrama de Bode Gx - Fase')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Fase en grados')
+
+%%
 figure
 semilogx(xvect(1:length(diffmag)), [mag2db(abs(Gw_u1(1:length(diffmag)))); mag2db(diffmag)]);
 title('Diagrama de Bode cconv u1 - Magnitud')
