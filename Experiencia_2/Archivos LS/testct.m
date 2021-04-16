@@ -20,7 +20,7 @@ echo on
 echo off
 Ts = 0.005           
 tfinal = 2
-Cs = 0.45;
+Cs = 0.4;
 t = (0:Ts:tfinal)';
 npts = length(t)
 echo on

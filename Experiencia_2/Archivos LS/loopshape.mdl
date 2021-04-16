@@ -32,7 +32,7 @@ Model {
       UnitExpr		      "inherit"
     }
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.113"
+    ComputedModelVersion    "1.127"
     NumModelReferences	    0
     NumTestPointedSignals   0
     NumProvidedFunctions    0
@@ -85,7 +85,7 @@ Model {
       $ObjectID		      3
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [249.0, 33.0, 873.0, 653.0]
+      Location		      [-7.0, -7.0, 1295.0, 695.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		4
@@ -111,10 +111,10 @@ Model {
 	IsTabbed		[1]
 	ViewObjType		"SimulinkTopLevel"
 	LoadSaveID		"0"
-	Extents			[1232.0, 638.0]
-	ZoomFactor		[0.6]
-	Offset			[-449.52252747252669, -14.063731383607063]
-	SceneRectInView		[-449.52252747252669, -14.063731383607063, 1368.8888888888889, 708.88888888888891]
+	Extents			[1864.0, 700.0]
+	ZoomFactor		[0.94160206718346262]
+	Offset			[-119.8682766190999, -77.8046103183315]
+	SceneRectInView		[-119.8682766190999, -77.8046103183315, 1319.7365532381998, 495.609220636663]
       }
       Object {
 	$PropName		"DockComponentsInfo"
@@ -135,7 +135,7 @@ Model {
       "AAAAAAA+wAAABYARABvAGMAawBXAGkAZABnAGUAdAA0AAAAAAD/////AAAAAAAAAAD7AAAAUgBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0Ac"
       "ABvAG4AZQBuAHQALwBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQAAAAAAP////8AAACTAP///wAAAAEAAAAAAAAAAPwCA"
       "AAAAfsAAABUAEcATABVAEUAMgA6AFAAcgBvAHAAZQByAHQAeQBJAG4AcwBwAGUAYwB0AG8AcgAvAFAAcgBvAHAAZQByAHQAeQAgAEkAbgBzAHAAZ"
-      "QBjAHQAbwByAAAAAAD/////AAAAUwD///8AAAUIAAACygAAAAEAAAACAAAAAQAAAAL8AAAAAQAAAAIAAAAA"
+      "QBjAHQAbwByAAAAAAD/////AAAAUwD///8AAAeAAAADCAAAAAEAAAACAAAAAQAAAAL8AAAAAQAAAAIAAAAA"
       Array {
 	Type			"Cell"
 	Dimension		0
@@ -152,9 +152,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "tronc"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Apr 16 00:02:35 2021"
-  RTWModifiedTimeStamp	  540428554
-  ModelVersionFormat	  "1.%<AutoIncrement:113>"
+  LastModifiedDate	  "Fri Apr 16 14:58:48 2021"
+  RTWModifiedTimeStamp	  540482327
+  ModelVersionFormat	  "1.%<AutoIncrement:127>"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "disabled"
@@ -1177,7 +1177,7 @@ Model {
   }
   System {
     Name		    "loopshape"
-    Location		    [249, 33, 1122, 686]
+    Location		    [-7, -7, 1288, 688]
     Open		    on
     PortBlocksUseCompactNotation off
     SetExecutionDomain	    off
@@ -1192,9 +1192,9 @@ Model {
     TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
     TiledPageScale	    1
     ShowPageBoundaries	    off
-    ZoomFactor		    "60"
+    ZoomFactor		    "94"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "99"
+    SIDHighWatermark	    "104"
     SimulinkSubDomain	    "Simulink"
     Block {
       BlockType		      Inport
@@ -1216,8 +1216,8 @@ Model {
     Block {
       BlockType		      Gain
       Name		      "Gain"
-      SID		      "3"
-      Position		      [795, 80, 825, 110]
+      SID		      "100"
+      Position		      [750, 80, 780, 110]
       ZOrder		      100000
       Gain		      "Cs"
       ParamDataTypeStr	      "Inherit: Inherit via internal rule"
@@ -1292,38 +1292,20 @@ Model {
     }
     Block {
       BlockType		      TransferFcn
-      Name		      "Transfer Fcn1"
-      SID		      "91"
-      Position		      [625, 77, 720, 113]
+      Name		      "Transfer Fcn"
+      SID		      "101"
+      Position		      [590, 77, 650, 113]
       ZOrder		      100000
-      Numerator		      "[1 25]"
+      Numerator		      "[1 500]"
       Denominator	      "[1 0]"
     }
     Block {
       BlockType		      TransferFcn
       Name		      "Transfer Fcn2"
-      SID		      "96"
-      Position		      [475, 77, 570, 113]
+      SID		      "103"
+      Position		      [475, 77, 535, 113]
       ZOrder		      100000
-      Numerator		      "[1 1]"
-      Denominator	      "[1 0]"
-    }
-    Block {
-      BlockType		      TransferFcn
-      Name		      "Transfer Fcn3"
-      SID		      "94"
-      Position		      [215, 77, 310, 113]
-      ZOrder		      100000
-      Numerator		      "[-300]"
-      Denominator	      "[-1 -300]"
-    }
-    Block {
-      BlockType		      TransferFcn
-      Name		      "Transfer Fcn4"
-      SID		      "98"
-      Position		      [355, 77, 450, 113]
-      ZOrder		      100000
-      Numerator		      "[1 2]"
+      Numerator		      "[1 100]"
       Denominator	      "[1 0]"
     }
     Block {
@@ -1397,10 +1379,10 @@ Model {
       }
     }
     Line {
-      ZOrder		      176
+      ZOrder		      201
       SrcBlock		      "Gain"
       SrcPort		      1
-      Points		      [9, 0]
+      Points		      [54, 0]
       Branch {
 	ZOrder			186
 	Points			[0, 195]
@@ -1415,38 +1397,24 @@ Model {
       }
     }
     Line {
-      ZOrder		      182
-      SrcBlock		      "Transfer Fcn1"
+      ZOrder		      202
+      SrcBlock		      "Transfer Fcn"
       SrcPort		      1
       DstBlock		      "Gain"
       DstPort		      1
     }
     Line {
-      ZOrder		      187
-      SrcBlock		      "Transfer Fcn3"
-      SrcPort		      1
-      DstBlock		      "Transfer Fcn4"
-      DstPort		      1
-    }
-    Line {
-      ZOrder		      189
+      ZOrder		      205
       SrcBlock		      "Transfer Fcn2"
       SrcPort		      1
-      DstBlock		      "Transfer Fcn1"
+      DstBlock		      "Transfer Fcn"
       DstPort		      1
     }
     Line {
-      ZOrder		      191
-      SrcBlock		      "Transfer Fcn4"
-      SrcPort		      1
-      DstBlock		      "Transfer Fcn2"
-      DstPort		      1
-    }
-    Line {
-      ZOrder		      193
+      ZOrder		      207
       SrcBlock		      "Sum1"
       SrcPort		      1
-      DstBlock		      "Transfer Fcn3"
+      DstBlock		      "Transfer Fcn2"
       DstPort		      1
     }
   }
