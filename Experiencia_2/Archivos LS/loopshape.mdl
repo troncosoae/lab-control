@@ -32,7 +32,7 @@ Model {
       UnitExpr		      "inherit"
     }
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.53"
+    ComputedModelVersion    "1.113"
     NumModelReferences	    0
     NumTestPointedSignals   0
     NumProvidedFunctions    0
@@ -85,7 +85,7 @@ Model {
       $ObjectID		      3
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [2231.0, 183.0, 873.0, 653.0]
+      Location		      [249.0, 33.0, 873.0, 653.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		4
@@ -113,8 +113,8 @@ Model {
 	LoadSaveID		"0"
 	Extents			[1232.0, 638.0]
 	ZoomFactor		[0.6]
-	Offset			[-399.5225274725268, -46.6609890109882]
-	SceneRectInView		[-399.5225274725268, -46.6609890109882, 1368.8888888888889, 708.88888888888891]
+	Offset			[-449.52252747252669, -14.063731383607063]
+	SceneRectInView		[-449.52252747252669, -14.063731383607063, 1368.8888888888889, 708.88888888888891]
       }
       Object {
 	$PropName		"DockComponentsInfo"
@@ -141,7 +141,7 @@ Model {
 	Dimension		0
 	PropName		"PersistedApps"
       }
-      WindowUuid	      "468e4e9f-6af4-4c24-acc8-7514674369e8"
+      WindowUuid	      "3da8c103-5033-48cc-91f4-772cb64b1d13"
     }
     BDUuid		    "551f7f02-9f22-40d4-9759-c670a97a023a"
   }
@@ -152,9 +152,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "tronc"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Thu Apr 15 22:01:31 2021"
-  RTWModifiedTimeStamp	  540421290
-  ModelVersionFormat	  "1.%<AutoIncrement:53>"
+  LastModifiedDate	  "Fri Apr 16 00:02:35 2021"
+  RTWModifiedTimeStamp	  540428554
+  ModelVersionFormat	  "1.%<AutoIncrement:113>"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "disabled"
@@ -1177,7 +1177,7 @@ Model {
   }
   System {
     Name		    "loopshape"
-    Location		    [2231, 183, 3104, 836]
+    Location		    [249, 33, 1122, 686]
     Open		    on
     PortBlocksUseCompactNotation off
     SetExecutionDomain	    off
@@ -1194,13 +1194,13 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "60"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "88"
+    SIDHighWatermark	    "99"
     SimulinkSubDomain	    "Simulink"
     Block {
       BlockType		      Inport
       Name		      "In1"
       SID		      "7"
-      Position		      [-435, 153, -405, 167]
+      Position		      [-105, 143, -75, 157]
       ZOrder		      7
       IconDisplay	      "Port number"
     }
@@ -1208,7 +1208,7 @@ Model {
       BlockType		      Inport
       Name		      "In2"
       SID		      "9"
-      Position		      [625, -452, 655, -438]
+      Position		      [-40, 43, -10, 57]
       ZOrder		      9
       Port		      "2"
       IconDisplay	      "Port number"
@@ -1217,8 +1217,8 @@ Model {
       BlockType		      Gain
       Name		      "Gain"
       SID		      "3"
-      Position		      [640, 145, 670, 175]
-      ZOrder		      3
+      Position		      [795, 80, 825, 110]
+      ZOrder		      100000
       Gain		      "Cs"
       ParamDataTypeStr	      "Inherit: Inherit via internal rule"
       OutDataTypeStr	      "Inherit: Inherit via internal rule"
@@ -1268,7 +1268,7 @@ Model {
       Name		      "Sum"
       SID		      "4"
       Ports		      [2, 1]
-      Position		      [-370, 150, -350, 170]
+      Position		      [-40, 140, -20, 160]
       ZOrder		      4
       ShowName		      off
       IconShape		      "round"
@@ -1282,7 +1282,7 @@ Model {
       Name		      "Sum1"
       SID		      "10"
       Ports		      [2, 1]
-      Position		      [675, -415, 705, -385]
+      Position		      [10, 80, 40, 110]
       ZOrder		      10
       ShowName		      off
       IconShape		      "round"
@@ -1292,11 +1292,38 @@ Model {
     }
     Block {
       BlockType		      TransferFcn
-      Name		      "Transfer Fcn"
-      SID		      "19"
-      Position		      [445, 142, 505, 178]
-      ZOrder		      16
+      Name		      "Transfer Fcn1"
+      SID		      "91"
+      Position		      [625, 77, 720, 113]
+      ZOrder		      100000
       Numerator		      "[1 25]"
+      Denominator	      "[1 0]"
+    }
+    Block {
+      BlockType		      TransferFcn
+      Name		      "Transfer Fcn2"
+      SID		      "96"
+      Position		      [475, 77, 570, 113]
+      ZOrder		      100000
+      Numerator		      "[1 1]"
+      Denominator	      "[1 0]"
+    }
+    Block {
+      BlockType		      TransferFcn
+      Name		      "Transfer Fcn3"
+      SID		      "94"
+      Position		      [215, 77, 310, 113]
+      ZOrder		      100000
+      Numerator		      "[-300]"
+      Denominator	      "[-1 -300]"
+    }
+    Block {
+      BlockType		      TransferFcn
+      Name		      "Transfer Fcn4"
+      SID		      "98"
+      Position		      [355, 77, 450, 113]
+      ZOrder		      100000
+      Numerator		      "[1 2]"
       Denominator	      "[1 0]"
     }
     Block {
@@ -1312,7 +1339,7 @@ Model {
       BlockType		      Outport
       Name		      "Out2"
       SID		      "14"
-      Position		      [770, 703, 800, 717]
+      Position		      [865, 283, 895, 297]
       ZOrder		      14
       Port		      "2"
       IconDisplay	      "Port number"
@@ -1334,30 +1361,12 @@ Model {
       DstPort		      1
     }
     Line {
-      ZOrder		      4
-      SrcBlock		      "Gain"
+      ZOrder		      181
+      SrcBlock		      "Sum"
       SrcPort		      1
-      Points		      [15, 0]
+      Points		      [40, 0]
       DstBlock		      "Sum1"
       DstPort		      2
-    }
-    Line {
-      ZOrder		      5
-      SrcBlock		      "Sum1"
-      SrcPort		      1
-      Points		      [28, 0]
-      Branch {
-	ZOrder			6
-	Points			[0, 1110]
-	DstBlock		"Out2"
-	DstPort			1
-      }
-      Branch {
-	ZOrder			7
-	Points			[62, 0; 0, 550]
-	DstBlock		"Planta"
-	DstPort			1
-      }
     }
     Line {
       ZOrder		      8
@@ -1382,23 +1391,62 @@ Model {
       }
       Branch {
 	ZOrder			10
-	Points			[0, 63; -1354, 0]
+	Points			[0, 45; -1024, 0]
 	DstBlock		"Sum"
 	DstPort			2
       }
     }
     Line {
-      ZOrder		      153
-      SrcBlock		      "Transfer Fcn"
+      ZOrder		      176
+      SrcBlock		      "Gain"
+      SrcPort		      1
+      Points		      [9, 0]
+      Branch {
+	ZOrder			186
+	Points			[0, 195]
+	DstBlock		"Out2"
+	DstPort			1
+      }
+      Branch {
+	ZOrder			185
+	Points			[21, 0; 0, 55]
+	DstBlock		"Planta"
+	DstPort			1
+      }
+    }
+    Line {
+      ZOrder		      182
+      SrcBlock		      "Transfer Fcn1"
       SrcPort		      1
       DstBlock		      "Gain"
       DstPort		      1
     }
     Line {
-      ZOrder		      160
-      SrcBlock		      "Sum"
+      ZOrder		      187
+      SrcBlock		      "Transfer Fcn3"
       SrcPort		      1
-      DstBlock		      "Transfer Fcn"
+      DstBlock		      "Transfer Fcn4"
+      DstPort		      1
+    }
+    Line {
+      ZOrder		      189
+      SrcBlock		      "Transfer Fcn2"
+      SrcPort		      1
+      DstBlock		      "Transfer Fcn1"
+      DstPort		      1
+    }
+    Line {
+      ZOrder		      191
+      SrcBlock		      "Transfer Fcn4"
+      SrcPort		      1
+      DstBlock		      "Transfer Fcn2"
+      DstPort		      1
+    }
+    Line {
+      ZOrder		      193
+      SrcBlock		      "Sum1"
+      SrcPort		      1
+      DstBlock		      "Transfer Fcn3"
       DstPort		      1
     }
   }

@@ -10,7 +10,7 @@ echo off
 tau = 0.05; % periodo de u
 Ts = 0.0005;
 tau_indice = round(tau/Ts);
-tfinal = 2;
+tfinal = 80;
 Cs = 0.3; % controlador malo que se debe poner antes de LS
 t = (Ts:Ts:tfinal)';
 b = (1/tau_indice)*ones(1,tau_indice);
@@ -32,7 +32,7 @@ echo off
 % periodo_PRBS = filter(b, a, prbs(tau_indice));
 % entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
 
-divisiones_periodos = 2;
+divisiones_periodos = 4;
 c_zero = 25;
 
 NumChannel = 1;
@@ -43,7 +43,8 @@ prbs = @(N) randi([-1 1], 1, N);
 % periodo_PRBS = filter(b, a, prbs(tau_indice));
 periodo_PRBS = prbs(Period);
 entrada_PRBS = transpose(repmat(periodo_PRBS, 1, NumPeriod));
-sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
+% sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
+sim_PRBS = [t, entrada_PRBS, zeros(npts,1)];
 
 tamano_ventana = Period/50;
 
