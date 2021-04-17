@@ -44,6 +44,7 @@ sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
 tamano_ventana = Period/50;
 
 [t_PRBS,x,y3] = sim('loopshape',tfinal,[],sim_PRBS);
+y3 = detrend(y3);
 y_PRBS = y3(1:round(length(y3(1:length(y3)-1 - mod(length(y3),10)))/divisiones_periodos)*round(divisiones_periodos),:);
 y_aux = reshape(y_PRBS(:,1),divisiones_periodos,[]);
 y_PRBS1 = mean(y_aux);
