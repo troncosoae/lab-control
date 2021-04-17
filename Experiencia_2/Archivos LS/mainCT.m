@@ -78,8 +78,8 @@ Ouu = fft(Ruu.*w);
 
 Gw_u1 = fftshift(Oyu./Ouu);
 disturbance_u1 = fftshift(Oyy - (Oyu.*conj(Oyu))./Ouu);
-% coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
-coherence_u1 = mscohere(y_PRBS1, c, w);
+coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+coherence_u1_alt = mscohere(y_PRBS1, c, w);
 diffmag = diff(mag2db(abs(Gw_u1)));
 diffphase = diff(-57.29*angle(Gw_u1));
 xvect = -1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts));
@@ -108,6 +108,13 @@ ylabel('Magnitud en dB')
 figure
 semilogx(coherence_u1);
 title('Espectro de coherencia u1')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
+
+figure
+semilogx(coherence_u1_alt);
+title('Espectro de coherencia u1 (mscohere)')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
@@ -155,8 +162,8 @@ Ouu = fft(Ruu.*w);
 
 Gw_u2 = fftshift(Oyu./Ouu);
 disturbance_u2 = fftshift(Oyy - (Oyu.*conj(Oyu))./Ouu);
-% coherence_u2 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
-coherence_u2 = mscohere(y_PRBS2, c, w);
+coherence_u2 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+coherence_u2_alt = mscohere(y_PRBS2, c, w);
 diffmag = gradient(mag2db(abs(Gw_u2)));
 diffphase = gradient(57.29*angle(Gw_u2));
 xvect = -1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts));
@@ -185,6 +192,13 @@ ylabel('Magnitud en dB')
 figure
 semilogx(coherence_u2);
 title('Espectro de coherencia u2')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
+
+figure
+semilogx(coherence_u2_alt);
+title('Espectro de coherencia u2 (mscohere)')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
