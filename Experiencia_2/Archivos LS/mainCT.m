@@ -106,7 +106,7 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(coherence_u1);
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(coherence_u1)));
 title('Espectro de coherencia u1')
 grid on
 xlabel('Frecuencia en Hz')
@@ -190,7 +190,7 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(coherence_u2);
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(coherence_u2)));
 title('Espectro de coherencia u2')
 grid on
 xlabel('Frecuencia en Hz')

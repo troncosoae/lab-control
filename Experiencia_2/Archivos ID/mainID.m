@@ -15,7 +15,7 @@ echo on
 % Parametros para la identifiación:
 echo off
 Ts = 0.005;      
-tfinal = 20;
+tfinal = 100;
 t = (Ts:Ts:tfinal)';
 npts = length(t);
 echo on
@@ -32,7 +32,7 @@ tau_indice = round(tau/Ts);
 % periodo_PRBS = filter(b, a, prbs(tau_indice));
 % entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
 % c = entrada_PRBS';
-divisiones_periodos = 2;
+divisiones_periodos = 10;
 
 NumChannel = 1;
 Period = npts/divisiones_periodos;
@@ -98,9 +98,9 @@ Ouu = fft(Ruu.*w);
 
 G = fftshift(Oyu./Ouu);
 disturbance = fftshift(Oyy - (Oyu.*conj(Oyu))./Ouu);
-% coherence = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+coherence = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
 % disturbance = pspectrum(y_PRBS, 1/Ts);
-coherence = mscohere(y_PRBS, c, w);
+coherence_alt = mscohere(y_PRBS, c, w);
 diffmag = diff(mag2db(abs(G)));
 diffphase = diff(-57.29*angle(G));
 xvect = (-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)));
@@ -133,8 +133,15 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(coherence);
-title('Espectro de coherencia')
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(coherence)));
+title('Espectro de coherencia (estimacion)')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
+
+figure
+semilogx(coherence_alt);
+title('Espectro de coherencia (mscohere)')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
