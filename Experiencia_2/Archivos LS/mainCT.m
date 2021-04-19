@@ -106,7 +106,7 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(coherence_u1)));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), coherence_u1);
 title('Espectro de coherencia u1')
 grid on
 xlabel('Frecuencia en Hz')
@@ -138,7 +138,7 @@ bode(frdata, opts)
 theta = -10*pi:(20*pi)*Ts:10*pi;
 theta = theta(1:length(y_PRBS1));
 figure
-polarplot(theta,Gw_u1)
+polarplot(theta,Gw_u1(1:length(y_PRBS1)))
 title("Polat plot transfer function u1")
 
 % Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
@@ -190,7 +190,7 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(coherence_u2)));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), coherence_u2);
 title('Espectro de coherencia u2')
 grid on
 xlabel('Frecuencia en Hz')

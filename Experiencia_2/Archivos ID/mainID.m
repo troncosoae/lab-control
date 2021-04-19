@@ -15,7 +15,7 @@ echo on
 % Parametros para la identifiación:
 echo off
 Ts = 0.005;      
-tfinal = 100;
+tfinal = 20;
 t = (Ts:Ts:tfinal)';
 npts = length(t);
 echo on
@@ -32,7 +32,7 @@ tau_indice = round(tau/Ts);
 % periodo_PRBS = filter(b, a, prbs(tau_indice));
 % entrada_PRBS = repmat(periodo_PRBS, 1, round(npts/tau_indice));
 % c = entrada_PRBS';
-divisiones_periodos = 10;
+divisiones_periodos = 2;
 
 NumChannel = 1;
 Period = npts/divisiones_periodos;
@@ -133,7 +133,7 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), mag2db(abs(coherence)));
+semilogx(-1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts)), coherence);
 title('Espectro de coherencia (estimacion)')
 grid on
 xlabel('Frecuencia en Hz')
