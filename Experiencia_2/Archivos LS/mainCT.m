@@ -10,7 +10,7 @@ echo off
 tau = 0.05; % periodo de u
 Ts = 0.0005;
 tau_indice = round(tau/Ts);
-tfinal = 80;
+tfinal = 2;
 Cs = 0.3; % controlador malo que se debe poner antes de LS
 t = (Ts:Ts:tfinal)';
 b = (1/tau_indice)*ones(1,tau_indice);
@@ -46,6 +46,7 @@ entrada_PRBS = transpose(repmat(periodo_PRBS, 1, NumPeriod));
 % sim_PRBS = [t, entrada_PRBS, entrada_PRBS];
 sim_PRBS = [t, entrada_PRBS, zeros(npts,1)];
 
+% tamano_ventana = Period/25;
 tamano_ventana = Period/50;
 
 [t_PRBS,x,y3] = sim('loopshape',tfinal,[],sim_PRBS);
@@ -82,8 +83,9 @@ Ouu = fft(Ruu.*w);
 
 Gw_u1 = fftshift(Oyu./Ouu);
 disturbance_u1 = fftshift(Oyy - (Oyu.*conj(Oyu))./Ouu);
+coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
+% coherence_u1 = mscohere(y_PRBS1, c, w);
 % coherence_u1 = sqrt((Oyu.*conj(Oyu))./(Oyy.*Ouu));
-coherence_u1 = mscohere(y_PRBS1, c, w);
 diffmag = diff(mag2db(abs(Gw_u1)));
 diffphase = diff(-57.29*angle(Gw_u1));
 xvect = -1/(2*Ts):(divisiones_periodos/(Ts*npts)):1/(Ts*2)-(divisiones_periodos/(Ts*npts));
@@ -101,6 +103,22 @@ title('Diagrama de Bode Gx - Fase')
 grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
+
+%%
+figure
+semilogx(xvect(1:length(diffmag)), [mag2db(abs(Gw_u1(1:length(diffmag))))]);
+title('Diagrama de Bode cconv u1 - Magnitud')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Magnitud en dB')
+
+figure
+semilogx(xvect(1:length(diffphase)), [-57.29*angle(Gw_u1(1:length(diffphase)))]);
+title('Diagrama de Bode cconv u1 - Fase')
+grid on
+xlabel('Frecuencia en Hz')
+ylabel('Fase en grados')
+
 
 %%
 figure
@@ -148,10 +166,11 @@ figure
 frdata = idfrd(Gw_u1,xvect,Ts);
 bode(frdata, opts)
 
+%%
 theta = -10*pi:(20*pi)*Ts:10*pi;
 theta = theta(1:length(y_PRBS1));
 figure
-polarplot(theta,Gw_u1)
+polarplot(theta,Gw_u1(1:length(y_PRBS1)))
 title("Polat plot transfer function u1")
 
 %%
