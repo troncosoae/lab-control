@@ -104,6 +104,12 @@ grid on
 xlabel('Frecuencia en Hz')
 ylabel('Fase en grados')
 
+theta = -10*pi:(20*pi)*Ts:10*pi;
+theta = theta(1:length(y_PRBS1));
+figure
+polarplot(theta,Gx(1:length(y_PRBS1)))
+title("Polar plot transfer function Gx")
+
 %%
 figure
 semilogx(xvect(1:length(diffmag)), [mag2db(abs(Gw_u1(1:length(diffmag))))]);
@@ -143,7 +149,7 @@ xlabel('Frecuencia en Hz')
 ylabel('Magnitud en dB')
 
 figure
-semilogx(coherence_u1);
+semilogx(abs(coherence_u1));
 title('Espectro de coherencia u1')
 grid on
 xlabel('Frecuencia en Hz')
@@ -171,7 +177,7 @@ theta = -10*pi:(20*pi)*Ts:10*pi;
 theta = theta(1:length(y_PRBS1));
 figure
 polarplot(theta,Gw_u1(1:length(y_PRBS1)))
-title("Polat plot transfer function u1")
+title("Polar plot transfer function u1")
 
 %%
 % Ryy = 1/N * xcorr(y_PRBS(:,2), circshift(y_PRBS(:,2), round(tau_indice/2)));
