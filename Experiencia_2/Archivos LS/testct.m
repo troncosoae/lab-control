@@ -12,7 +12,7 @@ clc;
 echo on
 % Se deben hacer pruebas con diferentes entradas.
 echo off
-disp('Push any key to begin the identification routine'); pause
+disp('Push any key to begin the identification routine'); %pause
 tic
 echo on
  
@@ -20,7 +20,7 @@ echo on
 echo off
 Ts = 0.005           
 tfinal = 2
-Cs = 0.4;
+Cs = 0.3;
 t = (0:Ts:tfinal)';
 npts = length(t)
 echo on
@@ -32,25 +32,26 @@ echo off
 
 f_sin = 500;
 A_sin = 1;
-% u1 = [t, 2*ones(npts,1), zeros(npts,1)];     
-% u2 = [t, -2*ones(npts,1), zeros(npts,1)]; 
-u1 = [t, 2*ones(npts,1), A_sin*sin(2*pi*f_sin*t)];     
-u2 = [t, -2*ones(npts,1), A_sin*sin(2*pi*f_sin*t)];         
+u1 = [t, 2*ones(npts,1), zeros(npts,1)];     
+u2 = [t, -2*ones(npts,1), zeros(npts,1)]; 
+% u1 = [t, 2*ones(npts,1), A_sin*sin(2*pi*f_sin*t)];     
+% u2 = [t, -2*ones(npts,1), A_sin*sin(2*pi*f_sin*t)];         
 [t1,x,y1] = sim('loopshape',tfinal,[],u1);        
 [t2,x,y2] = sim('loopshape',tfinal,[],u2);
 toc
 echo on
 % Se presentan gráficos de las respuestas
 echo off
-disp('Push any key to begin the plotting section'); pause
+disp('Push any key to begin the plotting section');% pause
 figure
 grid on
-plot(t1,y1)
+plot(t1,y1(:,1))
 title('Respuesta a u1')
 grid on
 xlabel('t')
 ylabel('Magnitud')
-disp('paused: push any key to continue'); pause
+%%
+disp('paused: push any key to continue'); %pause
 figure
 plot(t2,y2)
 grid on
